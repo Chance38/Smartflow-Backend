@@ -1,0 +1,35 @@
+services:
+  smartflow-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: smartflow-backend
+    platform: linux/arm64
+    ports:
+      - "5050:5050"
+    environment:
+      - ASPNETCORE_URLS=http://+:5050
+      - ASPNETCORE_ENVIRONMENT=Development
+      - LOGGER_URL=http://seq:5341
+    depends_on:
+      - seq
+    restart: unless-stopped
+    networks:
+      - smartflow-networks
+
+  seq:
+    image: datalust/seq:2024.1
+    container_name: smartflow-seq
+    environment:
+      ACCEPT_EULA: "Y"
+    ports:
+      - "7878:80"
+    volumes:
+      - ./seq/log:/data
+    restart: unless-stopped
+    networks:
+      - smartflow-networks
+
+networks:
+  smartflow-networks:
+    driver: bridge
