@@ -7,8 +7,13 @@ variables:
 
 build:
   stage: build
-  image: gcr.io/kaniko-project/executor:latest
+  image: alpine:3.18
+  before_script:
+    - apk add --no-cache ca-certificates curl
   script:
+    - mkdir -p /kaniko
+    - curl -sSL -o /kaniko/executor "https://github.com/GoogleContainerTools/kaniko/releases/download/v1.10.0/executor"
+    - chmod +x /kaniko/executor
     - mkdir -p /kaniko/.docker
     - |
       cat > /kaniko/.docker/config.json <<'EOF'
