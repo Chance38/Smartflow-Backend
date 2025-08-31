@@ -12,8 +12,17 @@ build:
     - apk add --no-cache ca-certificates curl
   script:
     - mkdir -p /kaniko
-    - curl -sSL -o /kaniko/executor "https://github.com/GoogleContainerTools/kaniko/releases/download/v1.10.0/executor"
-    - chmod +x /kaniko/executor
+    - |
+      ARCH=$(uname -m)
+      if [ "$ARCH" = "x86_64" ] || [ "$ARCH" = "amd64" ]; then
+        BIN_URL="https://github.com/GoogleContainerTools/kaniko/releases/download/v1.10.0/executor"
+      elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
+        BIN_URL="https://github.com/GoogleContainerTools/kaniko/releases/download/v1.10.0/executor-arm64"
+      else
+        echo "Unsupported architecture: $ARCH" && exit 1
+      fi
+      curl -sSL -o /kaniko/executor "$BIN_URL"
+      chmod +x /kaniko/executor
     - mkdir -p /kaniko/.docker
     - |
       cat > /kaniko/.docker/config.json <<'EOF'
