@@ -1,12 +1,22 @@
 using Serilog;
 using Serilog.Events;
 using Swashbuckle.AspNetCore.Filters;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "SmartFlowBackend",
+        Version = "v1",
+        Description = "SmartFlowBackend API"
+    });
+
     c.ExampleFilters();
 });
 builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
@@ -35,6 +45,7 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.MapControllers();
 app.Run();
 
 public partial class Program { }
