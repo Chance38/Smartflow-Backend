@@ -15,5 +15,3 @@ build:
     - docker:dind
   script:
     - docker build -t smartflow-backend .
-  only:
-    - main
