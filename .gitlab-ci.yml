@@ -5,13 +5,19 @@ variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
   ASPNETCORE_ENVIRONMENT: "Development"
 
-before_script:
-  - echo "Using .NET SDK version:" $(dotnet --version)
-
 build:
   stage: build
-  image: docker:latest
-  services:
-    - docker:dind
+  image: gcr.io/kaniko-project/executor:latest
   script:
-    - docker build -t smartflow-backend .
+    - mkdir -p /kaniko/.docker
+    - |
+      cat > /kaniko/.docker/config.json <<'EOF'
+      {"auths": {"$CI_REGISTRY": {"username": "$CI_REGISTRY_USER", "password": "$CI_REGISTRY_PASSWORD"}}}
+      EOF
+    - /kaniko/executor \
+      --context $CI_PROJECT_DIR \
+      --dockerfile $CI_PROJECT_DIR/Dockerfile \
+      --destination $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA \
+      --destination $CI_REGISTRY_IMAGE:latest \
+      --cache=true \
+      --skip-tls-verify
