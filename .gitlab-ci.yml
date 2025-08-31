@@ -17,9 +17,9 @@ build:
       LATEST_VERSION=$(curl -sL https://api.github.com/repos/GoogleContainerTools/kaniko/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
       ARCH=$(uname -m)
       if [ "$ARCH" = "x86_64" ] || [ "$ARCH" = "amd64" ]; then
-        BIN_URL="https://github.com/GoogleContainerTools/kaniko/releases/download/$LATEST_VERSION/executor"
+        BIN_URL="https://github.com/GoogleContainerTools/kaniko/releases/download/$LATEST_VERSION/kaniko-executor"
       elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
-        BIN_URL="https://github.com/GoogleContainerTools/kaniko/releases/download/$LATEST_VERSION/executor-arm64"
+        BIN_URL="https://github.com/GoogleContainerTools/kaniko/releases/download/$LATEST_VERSION/kaniko-executor-arm64"
       else
         echo "Unsupported architecture: $ARCH" && exit 1
       fi
