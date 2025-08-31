@@ -16,7 +16,7 @@ RUN dotnet publish -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime
 WORKDIR /app
-ENV ASPNETCORE_URLS=http://+:5050
+ENV ASPNETCORE_URLS=http://+:8080
 COPY --from=build /app/publish .
-EXPOSE 5050
+EXPOSE 8080
 ENTRYPOINT ["dotnet", "SmartFlowBackend.dll"]
