@@ -3,10 +3,6 @@ using SmartFlowBackend.Application.Contracts;
 using SmartFlowBackend.Domain.Entities;
 using SmartFlowBackend.Domain.Interfaces;
 using Middleware;
-using System;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace SmartFlowBackend.Controller
 {
@@ -28,6 +24,7 @@ namespace SmartFlowBackend.Controller
         {
             _logger.LogInformation("Received request to add record for user {UserId}", userId);
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
+
             try
             {
                 var user = await _unitOfWork.Users.GetUserByIdAsync(userId);
@@ -35,16 +32,19 @@ namespace SmartFlowBackend.Controller
                 {
                     throw new ArgumentException("User not found");
                 }
+
                 var category = await _unitOfWork.Categories.GetCategoryByNameAsync(request.Category);
                 if (category == null)
                 {
                     throw new ArgumentException("Category not found");
                 }
+
                 var tag = await _unitOfWork.Tags.GetTagByNameAsync(request.Tag);
                 if (tag == null)
                 {
                     throw new ArgumentException("Tag not found");
                 }
+
                 var record = new Record
                 {
                     Id = Guid.NewGuid(),
@@ -61,14 +61,23 @@ namespace SmartFlowBackend.Controller
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { requestId, errorMessage = ex.Message });
+                return BadRequest(new
+                {
+                    requestId,
+                    errorMessage = ex.Message
+                });
             }
-            return Ok(new { requestId });
+            return Ok(new
+            {
+                requestId
+            });
         }
 
         [HttpGet("this-month/{userId}")]
         public async Task<ActionResult<GetThisMonthRecordResponse>> GetThisMonthRecords([FromRoute] Guid userId)
         {
+            var requestId = ServiceMiddleware.GetRequestId(HttpContext);
+
             var balanceView = await _unitOfWork.Records.GetBalanceViewAsync(userId);
             var balance = balanceView?.Balance ?? 0;
             var records = await _unitOfWork.Records.GetRecordsByUserIdAndMonthAsync(userId, DateTime.Now.Year, DateTime.Now.Month);
@@ -90,12 +99,18 @@ namespace SmartFlowBackend.Controller
                 TotalExpense = totalExpense,
                 Expenses = expenses
             };
-            return Ok(response);
+            return Ok(new
+            {
+                requestId,
+                response
+            });
         }
 
         [HttpGet("all-months/{userId}")]
         public async Task<ActionResult<IEnumerable<GetAllMonthRecordsResponse>>> GetAllMonthRecords([FromRoute] Guid userId)
         {
+            var requestId = ServiceMiddleware.GetRequestId(HttpContext);
+
             var monthlyViews = await _unitOfWork.Records.GetMonthlyRecordsViewAsync(userId);
             var groupedRecords = monthlyViews
                 .OrderBy(mv => mv.Year).ThenBy(mv => mv.Month)
@@ -107,11 +122,17 @@ namespace SmartFlowBackend.Controller
                     Income = mv.Income
                 })
                 .ToList();
+
             var response = new GetAllMonthRecordsResponse
             {
                 Records = groupedRecords
             };
-            return Ok(response);
+
+            return Ok(new
+            {
+                requestId,
+                response
+            });
         }
     }
 }
