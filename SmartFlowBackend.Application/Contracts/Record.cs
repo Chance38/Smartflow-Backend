@@ -1,7 +1,7 @@
-// using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using SmartFlowBackend.Domain.Entities;
 
-namespace Contracts.Record;
+namespace SmartFlowBackend.Application.Contracts;
 
 public class AddRecordRequest
 {
@@ -9,28 +9,28 @@ public class AddRecordRequest
     public required string Category { get; set; }
 
     [JsonPropertyName("type")]
-    public required Category.Type Type { get; set; }
+    public required CategoryType Type { get; set; }
 
     [JsonPropertyName("tag")]
     public required string Tag { get; set; }
 
     [JsonPropertyName("amount")]
-    public required string Amount { get; set; }
+    public required float Amount { get; set; }
 
     [JsonPropertyName("date")]
-    public required DateTime Date { get; set; }
+    public required DateOnly Date { get; set; }
 }
 
 public class GetThisMonthRecordResponse
 {
     [JsonPropertyName("balance")]
-    public required string Balance { get; set; }
+    public required float Balance { get; set; }
 
     [JsonPropertyName("totalIncome")]
-    public required int TotalIncome { get; set; }
+    public required float TotalIncome { get; set; }
 
     [JsonPropertyName("totalExpense")]
-    public required int TotalExpense { get; set; }
+    public required float TotalExpense { get; set; }
 
     [JsonPropertyName("expenses")]
     public required List<Expense> Expenses { get; set; }
@@ -42,10 +42,16 @@ public class Expense
     public required string Type { get; set; }
 
     [JsonPropertyName("amount")]
-    public required int Amount { get; set; }
+    public required float Amount { get; set; }
 }
 
 public class GetAllMonthRecordsResponse
+{
+    [JsonPropertyName("records")]
+    public required List<RecordPerMonth> Records { get; set; }
+}
+
+public class RecordPerMonth
 {
     [JsonPropertyName("year")]
     public required string Year { get; set; }
@@ -54,9 +60,9 @@ public class GetAllMonthRecordsResponse
     public required string Month { get; set; }
 
     [JsonPropertyName("expense")]
-    public required int Expense { get; set; }
+    public required float Expense { get; set; }
 
     [JsonPropertyName("income")]
-    public required int Income { get; set; }
+    public required float Income { get; set; }
 }
 

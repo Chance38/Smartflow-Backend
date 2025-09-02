@@ -1,6 +1,15 @@
 using System.Text.Json.Serialization;
 
-namespace Contracts.Tag;
+namespace SmartFlowBackend.Application.Contracts;
+
+public class TagDto
+{
+    [JsonPropertyName("id")]
+    public Guid Id { get; set; }
+
+    [JsonPropertyName("name")]
+    public required string Name { get; set; }
+}
 
 public class AddTagRequest
 {

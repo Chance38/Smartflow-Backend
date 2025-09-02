@@ -11,8 +11,10 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - ASPNETCORE_ENVIRONMENT=Development
       - LOGGER_URL=http://seq:5341
+      - ConnectionStrings__Postgres_Connection=Host=postgres;Port=5432;Database=smartflow;Username=smartech;Password=Stt@1234
     depends_on:
       - seq
+      - postgres
     restart: unless-stopped
     networks:
       - smartflow-networks
@@ -29,6 +31,24 @@ services:
     restart: unless-stopped
     networks:
       - smartflow-networks
+
+  postgres:
+    image: postgres:15
+    container_name: smartflow-db
+    environment:
+      POSTGRES_USER: smartech
+      POSTGRES_PASSWORD: Stt@1234
+      POSTGRES_DB: smartflow
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    restart: always
+    ports:
+      - "5432:5432"
+    networks:
+      - smartflow-networks
+
+volumes:
+  postgresql_data:
 
 networks:
   smartflow-networks:
