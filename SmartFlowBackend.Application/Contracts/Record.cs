@@ -12,7 +12,7 @@ public class AddRecordRequest
     public required CategoryType Type { get; set; }
 
     [JsonPropertyName("tag")]
-    public required string Tag { get; set; }
+    public string? Tag { get; set; }
 
     [JsonPropertyName("amount")]
     public required float Amount { get; set; }

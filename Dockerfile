@@ -1,26 +1,29 @@
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
-WORKDIR /app
-
-# 複製 solution 與 nuget config
-COPY ["SmartFlowBackend.sln", "nuget.config", "./"]
-
-# 複製所有專案的 .csproj 檔案
-COPY ["SmartFlowBackend.Application/SmartFlowBackend.Application.csproj", "SmartFlowBackend.Application/"]
-COPY ["SmartFlowBackend.Domain/SmartFlowBackend.Domain.csproj", "SmartFlowBackend.Domain/"]
-COPY ["SmartFlowBackend.Infrastructure/SmartFlowBackend.Infrastructure.csproj", "SmartFlowBackend.Infrastructure/"]
-
-# 還原所有專案的依賴
+# Use the official .NET 8.0 SDK image as a build environment
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+COPY ["SmartFlowBackend.sln", "."]
+COPY "SmartFlowBackend.Application/SmartFlowBackend.Application.csproj" "SmartFlowBackend.Application/"
+COPY "SmartFlowBackend.Domain/SmartFlowBackend.Domain.csproj" "SmartFlowBackend.Domain/"
+COPY "SmartFlowBackend.Infrastructure/SmartFlowBackend.Infrastructure.csproj" "SmartFlowBackend.Infrastructure/"
 RUN dotnet restore "SmartFlowBackend.sln"
-
-# 複製其餘所有原始碼
 COPY . .
+WORKDIR "/src/SmartFlowBackend.Application"
+RUN dotnet build "SmartFlowBackend.Application.csproj" -c Release -o /app/build
 
-WORKDIR /app/SmartFlowBackend.Application
-RUN dotnet publish -c Release -o /app/publish
+FROM build AS publish
+WORKDIR "/src/SmartFlowBackend.Application"
+RUN dotnet publish "SmartFlowBackend.Application.csproj" -c Release -o /app/publish
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime
+# The final runtime image
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS final
 WORKDIR /app
+COPY --from=publish /app/publish .
+COPY . /src
+
 ENV ASPNETCORE_URLS=http://+:8080
-COPY --from=build /app/publish .
+RUN dotnet tool install --global dotnet-ef
+ENV PATH="$PATH:/root/.dotnet/tools"
+RUN chmod +x /src/entrypoint.sh
 EXPOSE 8080
-ENTRYPOINT ["dotnet", "SmartFlowBackend.Application.dll"]
+ENTRYPOINT ["/src/entrypoint.sh"]
+CMD ["dotnet", "/app/SmartFlowBackend.Application.dll"]

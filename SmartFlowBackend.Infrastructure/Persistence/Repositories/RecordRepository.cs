@@ -32,11 +32,4 @@ public class RecordRepository : Repository<Record>, IRecordRepository
             .FromSqlRaw("SELECT * FROM monthly_records_view WHERE \"UserId\" = {0}", userId)
             .ToListAsync();
     }
-
-    public async Task<BalanceView?> GetBalanceViewAsync(Guid userId)
-    {
-        return await _context.Set<BalanceView>()
-            .FromSqlRaw("SELECT * FROM balance_view WHERE \"UserId\" = {0}", userId)
-            .FirstOrDefaultAsync();
-    }
 }

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using SmartFlowBackend.Application;
 using SmartFlowBackend.Application.Contracts;
 using SmartFlowBackend.Domain.Entities;
 using SmartFlowBackend.Domain.Interfaces;
@@ -7,7 +8,7 @@ using Middleware;
 namespace SmartFlowBackend.Controller
 {
     [ApiController]
-    [Route("smartflow/v1/record")]
+    [Route("smartflow/v1/records")]
     public class RecordController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -19,9 +20,10 @@ namespace SmartFlowBackend.Controller
             _logger = logger;
         }
 
-        [HttpPost("{userId}")]
-        public async Task<IActionResult> AddRecord([FromRoute] Guid userId, [FromBody] AddRecordRequest request)
+        [HttpPost]
+        public async Task<IActionResult> AddRecord([FromBody] AddRecordRequest request)
         {
+            var userId = TestUser.Id;
             _logger.LogInformation("Received request to add record for user {UserId}", userId);
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
 
@@ -33,12 +35,45 @@ namespace SmartFlowBackend.Controller
                     throw new ArgumentException("User not found");
                 }
 
+                var summary = await _unitOfWork.MonthlySummaries.FindAsync(s => s.UserId == userId && s.Year == request.Date.Year && s.Month == request.Date.Month);
+
+                if (request.Type == CategoryType.Expense)
+                {
+                    user.Balance -= request.Amount;
+                    if (summary == null)
+                    {
+                        summary = new MonthlySummary { Id = Guid.NewGuid(), UserId = userId, Year = request.Date.Year, Month = request.Date.Month, Expense = request.Amount, Income = 0 };
+                        await _unitOfWork.MonthlySummaries.AddAsync(summary);
+                    }
+                    else
+                    {
+                        summary.Expense += request.Amount;
+                    }
+                }
+                else
+                {
+                    user.Balance += request.Amount;
+                    if (summary == null)
+                    {
+                        summary = new MonthlySummary { Id = Guid.NewGuid(), UserId = userId, Year = request.Date.Year, Month = request.Date.Month, Income = request.Amount, Expense = 0 };
+                        await _unitOfWork.MonthlySummaries.AddAsync(summary);
+                    }
+                    else
+                    {
+                        summary.Income += request.Amount;
+                    }
+                }
+
                 var category = await _unitOfWork.Categories.GetCategoryByNameAsync(request.Category);
                 if (category == null)
                 {
                     throw new ArgumentException("Category not found");
                 }
 
+                if (string.IsNullOrEmpty(request.Tag))
+                {
+                    throw new ArgumentException("Tag cannot be null or empty");
+                }
                 var tag = await _unitOfWork.Tags.GetTagByNameAsync(request.Tag);
                 if (tag == null)
                 {
@@ -53,8 +88,8 @@ namespace SmartFlowBackend.Controller
                     Date = request.Date,
                     UserId = userId,
                     CategoryId = category.Id,
-                    TagId = tag.Id
                 };
+                record.Tags.Add(tag);
                 await _unitOfWork.Records.AddAsync(record);
                 await _unitOfWork.SaveAsync();
                 _logger.LogInformation("Create record Successfully");
@@ -73,16 +108,39 @@ namespace SmartFlowBackend.Controller
             });
         }
 
-        [HttpGet("this-month/{userId}")]
-        public async Task<ActionResult<GetThisMonthRecordResponse>> GetThisMonthRecords([FromRoute] Guid userId)
+        [HttpGet]
+        public async Task<IActionResult> GetRecords([FromQuery] string period)
         {
+            if (period == "this-month")
+            {
+                return await GetThisMonthRecords();
+            }
+            else if (period == "all-months")
+            {
+                return await GetAllMonthRecords();
+            }
+            else
+            {
+                return BadRequest("Invalid period specified. Allowed values are 'this-month' or 'all-months'.");
+            }
+        }
+
+        private async Task<IActionResult> GetThisMonthRecords()
+        {
+            var userId = TestUser.Id;
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
 
-            var balanceView = await _unitOfWork.Records.GetBalanceViewAsync(userId);
-            var balance = balanceView?.Balance ?? 0;
+            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound(new { requestId, errorMessage = "User not found" });
+            }
+
             var records = await _unitOfWork.Records.GetRecordsByUserIdAndMonthAsync(userId, DateTime.Now.Year, DateTime.Now.Month);
-            var totalExpense = records.Where(r => r.Type == CategoryType.Expense).Sum(r => r.Amount);
-            var totalIncome = records.Where(r => r.Type == CategoryType.Income).Sum(r => r.Amount);
+            var summary = await _unitOfWork.MonthlySummaries.FindAsync(s => s.UserId == userId && s.Year == DateTime.Now.Year && s.Month == DateTime.Now.Month);
+
+            var totalExpense = summary?.Expense ?? 0;
+            var totalIncome = summary?.Income ?? 0;
             var expenses = records
                 .Where(r => r.Type == CategoryType.Expense)
                 .GroupBy(r => r.Category.Name)
@@ -94,7 +152,7 @@ namespace SmartFlowBackend.Controller
                 .ToList();
             var response = new GetThisMonthRecordResponse
             {
-                Balance = balance,
+                Balance = user.Balance,
                 TotalIncome = totalIncome,
                 TotalExpense = totalExpense,
                 Expenses = expenses
@@ -106,20 +164,20 @@ namespace SmartFlowBackend.Controller
             });
         }
 
-        [HttpGet("all-months/{userId}")]
-        public async Task<ActionResult<IEnumerable<GetAllMonthRecordsResponse>>> GetAllMonthRecords([FromRoute] Guid userId)
+        private async Task<IActionResult> GetAllMonthRecords()
         {
+            var userId = TestUser.Id;
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
 
-            var monthlyViews = await _unitOfWork.Records.GetMonthlyRecordsViewAsync(userId);
-            var groupedRecords = monthlyViews
-                .OrderBy(mv => mv.Year).ThenBy(mv => mv.Month)
-                .Select(mv => new RecordPerMonth
+            var monthlySummaries = await _unitOfWork.MonthlySummaries.FindAllAsync(s => s.UserId == userId);
+            var groupedRecords = monthlySummaries
+                .OrderBy(s => s.Year).ThenBy(s => s.Month)
+                .Select(s => new RecordPerMonth
                 {
-                    Year = mv.Year.ToString(),
-                    Month = mv.Month.ToString(),
-                    Expense = mv.Expense,
-                    Income = mv.Income
+                    Year = s.Year.ToString(),
+                    Month = s.Month.ToString(),
+                    Expense = s.Expense,
+                    Income = s.Income
                 })
                 .ToList();
 

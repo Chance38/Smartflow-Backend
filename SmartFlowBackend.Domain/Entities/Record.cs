@@ -15,14 +15,12 @@ public class Record
     public CategoryType Type { get; set; }
 
     // Foreign Keys
-    [ForeignKey("Tag")]
-    public Guid TagId { get; set; }
     [ForeignKey("Category")]
     public Guid CategoryId { get; set; }
     [ForeignKey("User")]
     public Guid UserId { get; set; }
 
-    public Tag Tag { get; set; } = null!;
+    public ICollection<Tag> Tags { get; set; } = new List<Tag>();
     public Category Category { get; set; } = null!;
     public User User { get; set; } = null!;
 }

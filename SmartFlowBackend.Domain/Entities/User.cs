@@ -11,8 +11,7 @@ public class User
     public required string Account { get; set; }
     public required string Password { get; set; }
 
-    public float InitialBalance { get; set; }
-    public float SettingsBalance { get; set; }
+    public float Balance { get; set; }
 
     public ICollection<Category> Categories { get; set; } = new List<Category>();
     public ICollection<Record> Records { get; set; } = new List<Record>();

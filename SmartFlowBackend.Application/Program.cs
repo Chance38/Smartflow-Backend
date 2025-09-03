@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using SmartFlowBackend.Infrastructure.Persistence;
 using SmartFlowBackend.Domain.Interfaces;
+using SmartFlowBackend.Application;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,6 +59,34 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var sp = scope.ServiceProvider;
+    try
+    {
+        var uow = sp.GetRequiredService<SmartFlowBackend.Domain.Interfaces.IUnitOfWork>();
+        var existing = uow.Users.GetUserByIdAsync(TestUser.Id).GetAwaiter().GetResult();
+        if (existing == null)
+        {
+            var user = new SmartFlowBackend.Domain.Entities.User
+            {
+                Id = TestUser.Id,
+                Username = TestUser.Username,
+                Account = TestUser.Account,
+                Password = TestUser.Password,
+                Balance = 10000.0f
+            };
+            uow.Users.AddAsync(user).GetAwaiter().GetResult();
+            uow.SaveAsync().GetAwaiter().GetResult();
+        }
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetService<ILogger<Program>>();
+        logger?.LogError(ex, "Failed to ensure test user exists");
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {

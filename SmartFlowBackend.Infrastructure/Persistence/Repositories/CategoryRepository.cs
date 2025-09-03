@@ -10,16 +10,20 @@ public class CategoryRepository : Repository<Category>, ICategoryRepository
     {
     }
 
-    public async Task<IEnumerable<Category>> GetAllCategoriesByUserIdAsync(Guid userId)
+    public async Task<List<Category>> GetAllCategoriesByUserIdAsync(Guid userId)
     {
         return await _context.Categories
             .Where(c => c.UserId == userId)
             .ToListAsync();
     }
 
-    public async Task<Category?> GetCategoryByNameAsync(string name)
+    public async Task<Category> GetCategoryByNameAsync(string name)
     {
-        return await _context.Categories
-            .FirstOrDefaultAsync(c => c.Name == name);
+        var category = await _context.Categories.FirstOrDefaultAsync(c => c.Name == name);
+        if (category == null)
+        {
+            throw new InvalidOperationException($"Category with name '{name}' not found.");
+        }
+        return category;
     }
 }

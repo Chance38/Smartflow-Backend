@@ -15,10 +15,8 @@ public class Tag
     public Guid UserId { get; set; }
     [ForeignKey("Category")]
     public Guid CategoryId { get; set; }
-    [ForeignKey("Record")]
-    public Guid RecordId { get; set; }
 
     public User User { get; set; } = null!;
     public Category Category { get; set; } = null!;
-    public Record Record { get; set; } = null!;
+    public ICollection<Record> Records { get; set; } = new List<Record>();
 }

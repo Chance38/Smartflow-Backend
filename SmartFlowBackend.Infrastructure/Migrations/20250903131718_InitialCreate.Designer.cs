@@ -12,7 +12,7 @@ using SmartFlowBackend.Infrastructure.Persistence;
 namespace SmartFlowBackend.Infrastructure.Migrations
 {
     [DbContext(typeof(PostgresDbContext))]
-    [Migration("20250902065012_InitialCreate")]
+    [Migration("20250903131718_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -25,6 +25,21 @@ namespace SmartFlowBackend.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("RecordTag", b =>
+                {
+                    b.Property<Guid>("RecordsId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TagsId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("RecordsId", "TagsId");
+
+                    b.HasIndex("TagsId");
+
+                    b.ToTable("RecordTag");
+                });
+
             modelBuilder.Entity("SmartFlowBackend.Domain.Entities.Category", b =>
                 {
                     b.Property<Guid>("Id")
@@ -35,8 +50,9 @@ namespace SmartFlowBackend.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
@@ -48,14 +64,42 @@ namespace SmartFlowBackend.Infrastructure.Migrations
                     b.ToTable("Categories");
                 });
 
+            modelBuilder.Entity("SmartFlowBackend.Domain.Entities.MonthlySummary", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<float>("Expense")
+                        .HasColumnType("real");
+
+                    b.Property<float>("Income")
+                        .HasColumnType("real");
+
+                    b.Property<int>("Month")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("MonthlySummaries");
+                });
+
             modelBuilder.Entity("SmartFlowBackend.Domain.Entities.Record", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("numeric");
+                    b.Property<float>("Amount")
+                        .HasColumnType("real");
 
                     b.Property<Guid>("CategoryId")
                         .HasColumnType("uuid");
@@ -63,11 +107,9 @@ namespace SmartFlowBackend.Infrastructure.Migrations
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
-                    b.Property<Guid>("TagId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
@@ -77,8 +119,6 @@ namespace SmartFlowBackend.Infrastructure.Migrations
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("Date");
-
-                    b.HasIndex("TagId");
 
                     b.HasIndex("UserId");
 
@@ -98,17 +138,12 @@ namespace SmartFlowBackend.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("RecordId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
-
-                    b.HasIndex("RecordId");
 
                     b.HasIndex("UserId");
 
@@ -125,15 +160,12 @@ namespace SmartFlowBackend.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<float>("InitialBalance")
+                    b.Property<float>("Balance")
                         .HasColumnType("real");
 
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<float>("SettingsBalance")
-                        .HasColumnType("real");
 
                     b.Property<string>("Username")
                         .IsRequired()
@@ -144,10 +176,36 @@ namespace SmartFlowBackend.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("RecordTag", b =>
+                {
+                    b.HasOne("SmartFlowBackend.Domain.Entities.Record", null)
+                        .WithMany()
+                        .HasForeignKey("RecordsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SmartFlowBackend.Domain.Entities.Tag", null)
+                        .WithMany()
+                        .HasForeignKey("TagsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SmartFlowBackend.Domain.Entities.Category", b =>
                 {
                     b.HasOne("SmartFlowBackend.Domain.Entities.User", "User")
                         .WithMany("Categories")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SmartFlowBackend.Domain.Entities.MonthlySummary", b =>
+                {
+                    b.HasOne("SmartFlowBackend.Domain.Entities.User", "User")
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -163,12 +221,6 @@ namespace SmartFlowBackend.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SmartFlowBackend.Domain.Entities.Tag", "Tag")
-                        .WithMany()
-                        .HasForeignKey("TagId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("SmartFlowBackend.Domain.Entities.User", "User")
                         .WithMany("Records")
                         .HasForeignKey("UserId")
@@ -176,8 +228,6 @@ namespace SmartFlowBackend.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
-
-                    b.Navigation("Tag");
 
                     b.Navigation("User");
                 });
@@ -190,12 +240,6 @@ namespace SmartFlowBackend.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SmartFlowBackend.Domain.Entities.Record", "Record")
-                        .WithMany()
-                        .HasForeignKey("RecordId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("SmartFlowBackend.Domain.Entities.User", "User")
                         .WithMany("Tags")
                         .HasForeignKey("UserId")
@@ -203,8 +247,6 @@ namespace SmartFlowBackend.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
-
-                    b.Navigation("Record");
 
                     b.Navigation("User");
                 });

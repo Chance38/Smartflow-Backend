@@ -2,8 +2,7 @@ using SmartFlowBackend.Domain.Entities;
 
 namespace SmartFlowBackend.Domain.Interfaces;
 
-public interface IUserRepository
+public interface IUserRepository : IRepository<User>
 {
     Task<User?> GetUserByIdAsync(Guid userId);
-    Task<float> GetInitialBalanceAsync(Guid userId);
 }

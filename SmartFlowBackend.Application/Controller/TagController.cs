@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using SmartFlowBackend.Application;
 using SmartFlowBackend.Application.Contracts;
 using SmartFlowBackend.Domain.Entities;
 using SmartFlowBackend.Domain.Interfaces;
@@ -24,28 +25,56 @@ namespace SmartFlowBackend.Controller
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
             _logger.LogInformation("Received request to add tag");
+
             try
             {
-                var tag = new Tag { Id = Guid.NewGuid(), Name = req.Name };
+                var userId = TestUser.Id;
+
+                var category = await _unitOfWork.Categories.GetCategoryByNameAsync(req.Category);
+
+                var tag = new Tag
+                {
+                    Id = Guid.NewGuid(),
+                    Name = req.Name,
+                    UserId = userId,
+                    CategoryId = category.Id
+                };
+
                 await _unitOfWork.Tags.AddAsync(tag);
                 await _unitOfWork.SaveAsync();
                 _logger.LogInformation("Create tag Successfully");
-                return Ok(new { requestId });
+                return Ok(new
+                {
+                    requestId
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogError(ex, "Error creating tag: {Message}", ex.Message);
+                return BadRequest(new
+                {
+                    requestId,
+                    errorMessage = ex.Message
+                });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An unexpected error occurred while creating a tag.");
-                return StatusCode(500, new { requestId, errorMessage = "An unexpected error occurred." });
+                return StatusCode(500, new
+                {
+                    requestId,
+                    errorMessage = "An unexpected error occurred."
+                });
             }
         }
 
-        [HttpGet("{userId}")]
-        public async Task<IActionResult> GetAllTagsByUserId([FromRoute(Name = "userId")] Guid userId)
+        [HttpGet]
+        public async Task<IActionResult> GetAllTagsByUserId()
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
             try
             {
-                var tags = await _unitOfWork.Tags.GetAllTagsByUserIdAsync(userId);
+                var tags = await _unitOfWork.Tags.GetAllTagsByUserIdAsync(TestUser.Id);
                 var tagDtos = tags.Select(t => new TagDto { Id = t.Id, Name = t.Name }).ToList();
                 return Ok(new { requestId, tags = tagDtos });
             }

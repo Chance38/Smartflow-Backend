@@ -4,7 +4,6 @@ namespace SmartFlowBackend.Domain.Interfaces;
 
 public interface ICategoryRepository : IRepository<Category>
 {
-    Task<IEnumerable<Category>> GetAllCategoriesByUserIdAsync(Guid userId);
-
+    Task<List<Category>> GetAllCategoriesByUserIdAsync(Guid userId);
     Task<Category> GetCategoryByNameAsync(string name);
 }
