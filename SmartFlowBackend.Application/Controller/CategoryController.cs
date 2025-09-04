@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using SmartFlowBackend.Application.Contracts;
-using SmartFlowBackend.Domain.Entities;
 using SmartFlowBackend.Domain.Interfaces;
 using Middleware;
+using SmartFlowBackend.Domain.Contracts;
+using SmartFlowBackend.Domain;
 
 namespace SmartFlowBackend.Application.Controller
 {
@@ -10,12 +10,12 @@ namespace SmartFlowBackend.Application.Controller
     [ApiController]
     public class CategoryController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly ICategoryService _categoryService;
         private readonly ILogger<CategoryController> _logger;
 
-        public CategoryController(IUnitOfWork unitOfWork, ILogger<CategoryController> logger)
+        public CategoryController(ICategoryService categoryService, ILogger<CategoryController> logger)
         {
-            _unitOfWork = unitOfWork;
+            _categoryService = categoryService;
             _logger = logger;
         }
 
@@ -27,18 +27,7 @@ namespace SmartFlowBackend.Application.Controller
 
             try
             {
-                var userId = TestUser.Id;
-
-                var category = new Domain.Entities.Category
-                {
-                    Id = Guid.NewGuid(),
-                    Name = req.Name,
-                    Type = req.Type,
-                    UserId = userId
-                };
-
-                await _unitOfWork.Categories.AddAsync(category);
-                await _unitOfWork.SaveAsync();
+                await _categoryService.AddCategoryAsync(req);
 
                 _logger.LogInformation("Create category Successfully");
                 return Ok(new
@@ -65,20 +54,12 @@ namespace SmartFlowBackend.Application.Controller
 
             try
             {
-                var userId = TestUser.Id;
-                var categories = await _unitOfWork.Categories.GetAllCategoriesByUserIdAsync(userId);
-
-                var Categories = categories
-                    .Select(c => new Contracts.Category
-                    {
-                        Name = c.Name,
-                        Type = c.Type
-                    }).ToList();
+                var categories = await _categoryService.GetAllCategoriesByUserIdAsync();
 
                 return Ok(new
                 {
                     requestId,
-                    categories = Categories
+                    categories
                 });
             }
             catch (Exception ex)

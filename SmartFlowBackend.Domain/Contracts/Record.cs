@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using SmartFlowBackend.Domain.Entities;
 
-namespace SmartFlowBackend.Application.Contracts;
+namespace SmartFlowBackend.Domain.Contracts;
 
 public class AddRecordRequest
 {
@@ -45,6 +45,12 @@ public class Expense
     public required float Amount { get; set; }
 }
 
+public class GetLastSixMonthRecordsResponse
+{
+    [JsonPropertyName("records")]
+    public required List<RecordPerMonth> Records { get; set; }
+}
+
 public class GetAllMonthRecordsResponse
 {
     [JsonPropertyName("records")]
@@ -54,10 +60,10 @@ public class GetAllMonthRecordsResponse
 public class RecordPerMonth
 {
     [JsonPropertyName("year")]
-    public required string Year { get; set; }
+    public required int Year { get; set; }
 
     [JsonPropertyName("month")]
-    public required string Month { get; set; }
+    public required int Month { get; set; }
 
     [JsonPropertyName("expense")]
     public required float Expense { get; set; }
@@ -65,4 +71,3 @@ public class RecordPerMonth
     [JsonPropertyName("income")]
     public required float Income { get; set; }
 }
-

@@ -5,7 +5,9 @@ using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using SmartFlowBackend.Infrastructure.Persistence;
 using SmartFlowBackend.Domain.Interfaces;
+using SmartFlowBackend.Domain.Services;
 using SmartFlowBackend.Application;
+using SmartFlowBackend.Domain;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +26,9 @@ builder.Services.AddDbContext<PostgresDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IRecordService, RecordService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<ITagService, TagService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -66,7 +71,7 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var uow = sp.GetRequiredService<SmartFlowBackend.Domain.Interfaces.IUnitOfWork>();
-        var existing = uow.Users.GetUserByIdAsync(TestUser.Id).GetAwaiter().GetResult();
+        var existing = uow.User.GetUserByIdAsync(TestUser.Id).GetAwaiter().GetResult();
         if (existing == null)
         {
             var user = new SmartFlowBackend.Domain.Entities.User
@@ -77,7 +82,7 @@ using (var scope = app.Services.CreateScope())
                 Password = TestUser.Password,
                 Balance = 10000.0f
             };
-            uow.Users.AddAsync(user).GetAwaiter().GetResult();
+            uow.User.AddAsync(user).GetAwaiter().GetResult();
             uow.SaveAsync().GetAwaiter().GetResult();
         }
     }

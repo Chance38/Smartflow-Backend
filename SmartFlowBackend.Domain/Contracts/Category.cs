@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 using System.ComponentModel.DataAnnotations;
 using SmartFlowBackend.Domain.Entities;
 
-namespace SmartFlowBackend.Application.Contracts;
+namespace SmartFlowBackend.Domain.Contracts;
 
 public class Category
 {

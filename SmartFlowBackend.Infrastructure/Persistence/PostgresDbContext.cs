@@ -19,6 +19,12 @@ public class PostgresDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.Entity<User>().ToTable("User");
+        modelBuilder.Entity<Category>().ToTable("Category");
+        modelBuilder.Entity<Record>().ToTable("Record");
+        modelBuilder.Entity<Tag>().ToTable("Tag");
+        modelBuilder.Entity<MonthlySummary>().ToTable("MonthlySummary");
+
         modelBuilder.Entity<MonthlySummary>()
             .HasOne(ms => ms.User)
             .WithMany()

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace SmartFlowBackend.Application.Contracts;
+namespace SmartFlowBackend.Domain.Contracts;
 
 public class TagDto
 {

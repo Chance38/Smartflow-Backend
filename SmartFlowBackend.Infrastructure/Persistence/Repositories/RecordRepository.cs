@@ -25,11 +25,4 @@ public class RecordRepository : Repository<Record>, IRecordRepository
             .Where(r => r.Category.UserId == userId)
             .ToListAsync();
     }
-
-    public async Task<List<MonthlyRecordView>> GetMonthlyRecordsViewAsync(Guid userId)
-    {
-        return await _context.Set<MonthlyRecordView>()
-            .FromSqlRaw("SELECT * FROM monthly_records_view WHERE \"UserId\" = {0}", userId)
-            .ToListAsync();
-    }
 }

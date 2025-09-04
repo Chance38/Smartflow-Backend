@@ -1,22 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
-using SmartFlowBackend.Application;
-using SmartFlowBackend.Application.Contracts;
-using SmartFlowBackend.Domain.Entities;
 using SmartFlowBackend.Domain.Interfaces;
 using Middleware;
+using SmartFlowBackend.Domain.Contracts;
 
-namespace SmartFlowBackend.Controller
+namespace SmartFlowBackend.Application.Controller
 {
     [ApiController]
     [Route("smartflow/v1/tag")]
     public class TagController : ControllerBase
     {
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly ITagService _tagService;
         private readonly ILogger<TagController> _logger;
 
-        public TagController(IUnitOfWork unitOfWork, ILogger<TagController> logger)
+        public TagController(ITagService tagService, ILogger<TagController> logger)
         {
-            _unitOfWork = unitOfWork;
+            _tagService = tagService;
             _logger = logger;
         }
 
@@ -28,20 +26,7 @@ namespace SmartFlowBackend.Controller
 
             try
             {
-                var userId = TestUser.Id;
-
-                var category = await _unitOfWork.Categories.GetCategoryByNameAsync(req.Category);
-
-                var tag = new Tag
-                {
-                    Id = Guid.NewGuid(),
-                    Name = req.Name,
-                    UserId = userId,
-                    CategoryId = category.Id
-                };
-
-                await _unitOfWork.Tags.AddAsync(tag);
-                await _unitOfWork.SaveAsync();
+                await _tagService.AddTagAsync(req);
                 _logger.LogInformation("Create tag Successfully");
                 return Ok(new
                 {
@@ -74,9 +59,8 @@ namespace SmartFlowBackend.Controller
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
             try
             {
-                var tags = await _unitOfWork.Tags.GetAllTagsByUserIdAsync(TestUser.Id);
-                var tagDtos = tags.Select(t => new TagDto { Id = t.Id, Name = t.Name }).ToList();
-                return Ok(new { requestId, tags = tagDtos });
+                var tags = await _tagService.GetAllTagsByUserIdAsync();
+                return Ok(new { requestId, tags });
             }
             catch (Exception ex)
             {

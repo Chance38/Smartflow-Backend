@@ -1,4 +1,4 @@
-namespace SmartFlowBackend.Application;
+namespace SmartFlowBackend.Domain;
 
 public static class TestUser
 {

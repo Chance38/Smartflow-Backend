@@ -6,20 +6,20 @@ namespace SmartFlowBackend.Infrastructure.Persistence;
 public class UnitOfWork : IUnitOfWork
 {
     private readonly PostgresDbContext _context;
-    public ICategoryRepository Categories { get; }
-    public IRecordRepository Records { get; }
-    public ITagRepository Tags { get; }
-    public IUserRepository Users { get; }
-    public IMonthlySummaryRepository MonthlySummaries { get; }
+    public ICategoryRepository Category { get; }
+    public IRecordRepository Record { get; }
+    public ITagRepository Tag { get; }
+    public IUserRepository User { get; }
+    public IMonthlySummaryRepository MonthlySummary { get; }
 
     public UnitOfWork(PostgresDbContext context)
     {
         _context = context;
-        Categories = new CategoryRepository(_context);
-        Records = new RecordRepository(_context);
-        Tags = new TagRepository(_context);
-        Users = new UserRepository(_context);
-        MonthlySummaries = new MonthlySummaryRepository(_context);
+        Category = new CategoryRepository(_context);
+        Record = new RecordRepository(_context);
+        Tag = new TagRepository(_context);
+        User = new UserRepository(_context);
+        MonthlySummary = new MonthlySummaryRepository(_context);
     }
 
     public async Task<int> SaveAsync()

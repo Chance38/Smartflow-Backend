@@ -2,10 +2,10 @@ namespace SmartFlowBackend.Domain.Interfaces;
 
 public interface IUnitOfWork : IDisposable
 {
-    ICategoryRepository Categories { get; }
-    IRecordRepository Records { get; }
-    ITagRepository Tags { get; }
-    IUserRepository Users { get; }
-    IMonthlySummaryRepository MonthlySummaries { get; }
+    ICategoryRepository Category { get; }
+    IRecordRepository Record { get; }
+    ITagRepository Tag { get; }
+    IUserRepository User { get; }
+    IMonthlySummaryRepository MonthlySummary { get; }
     Task<int> SaveAsync();
 }
