@@ -4,7 +4,8 @@ namespace SmartFlowBackend.Domain.Interfaces
 {
     public interface ICategoryService
     {
-        Task AddCategoryAsync(AddCategoryRequest request);
-        Task<List<Category>> GetAllCategoriesByUserIdAsync();
+        Task AddCategoryAsync(AddCategoryRequest request, Guid userId);
+
+        Task<List<Category>> GetAllCategoriesByUserIdAsync(Guid userId);
     }
 }

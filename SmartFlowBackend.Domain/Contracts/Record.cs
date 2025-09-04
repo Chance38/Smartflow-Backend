@@ -21,16 +21,10 @@ public class AddRecordRequest
     public required DateOnly Date { get; set; }
 }
 
-public class GetThisMonthRecordResponse
+public class GetThisMonthExpensesResponse
 {
-    [JsonPropertyName("balance")]
-    public required float Balance { get; set; }
-
-    [JsonPropertyName("totalIncome")]
-    public required float TotalIncome { get; set; }
-
-    [JsonPropertyName("totalExpense")]
-    public required float TotalExpense { get; set; }
+    [JsonPropertyName("requestId")]
+    public required string RequestId { get; set; }
 
     [JsonPropertyName("expenses")]
     public required List<Expense> Expenses { get; set; }
@@ -45,14 +39,11 @@ public class Expense
     public required float Amount { get; set; }
 }
 
-public class GetLastSixMonthRecordsResponse
+public class GetMonthRecordsResponse
 {
-    [JsonPropertyName("records")]
-    public required List<RecordPerMonth> Records { get; set; }
-}
+    [JsonPropertyName("requestId")]
+    public required string RequestId { get; set; }
 
-public class GetAllMonthRecordsResponse
-{
     [JsonPropertyName("records")]
     public required List<RecordPerMonth> Records { get; set; }
 }

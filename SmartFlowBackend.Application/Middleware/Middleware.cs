@@ -1,6 +1,4 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
+using SmartFlowBackend.Domain.Contracts;
 
 namespace Middleware;
 
@@ -27,7 +25,7 @@ public class ServiceMiddleware
 
             context.Response.StatusCode = 500;
             context.Response.ContentType = "application/json";
-            await context.Response.WriteAsJsonAsync(new
+            await context.Response.WriteAsJsonAsync(new ServerErrorSituation
             {
                 RequestId = context.TraceIdentifier.ToString(),
                 ErrorMessage = "Unexpected error, Please contact support with the request ID."

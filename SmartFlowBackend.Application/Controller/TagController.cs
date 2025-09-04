@@ -2,11 +2,12 @@ using Microsoft.AspNetCore.Mvc;
 using SmartFlowBackend.Domain.Interfaces;
 using Middleware;
 using SmartFlowBackend.Domain.Contracts;
+using SmartFlowBackend.Domain;
 
 namespace SmartFlowBackend.Application.Controller
 {
     [ApiController]
-    [Route("smartflow/v1/tag")]
+    [Route("smartflow/v1")]
     public class TagController : ControllerBase
     {
         private readonly ITagService _tagService;
@@ -18,54 +19,66 @@ namespace SmartFlowBackend.Application.Controller
             _logger = logger;
         }
 
-        [HttpPost]
+        [HttpPost("tag")]
+        [ProducesResponseType(typeof(OkSituation), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AddTag([FromBody] AddTagRequest req)
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
-            _logger.LogInformation("Received request to add tag");
+
+            var userId = TestUser.Id;
+            _logger.LogInformation("Received request to add tag for user: {UserId}", userId);
 
             try
             {
-                await _tagService.AddTagAsync(req);
+                await _tagService.AddTagAsync(req, userId);
                 _logger.LogInformation("Create tag Successfully");
-                return Ok(new
-                {
-                    requestId
-                });
+
             }
-            catch (InvalidOperationException ex)
+            catch (ArgumentException ex)
             {
-                _logger.LogError(ex, "Error creating tag: {Message}", ex.Message);
-                return BadRequest(new
+                return NotFound(new ClientErrorSituation
                 {
-                    requestId,
-                    errorMessage = ex.Message
+                    RequestId = requestId,
+                    ErrorMessage = ex.Message
                 });
             }
-            catch (Exception ex)
+
+            return Ok(new OkSituation
             {
-                _logger.LogError(ex, "An unexpected error occurred while creating a tag.");
-                return StatusCode(500, new
-                {
-                    requestId,
-                    errorMessage = "An unexpected error occurred."
-                });
-            }
+                RequestId = requestId
+            });
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllTagsByUserId()
+        [HttpGet("tags")]
+        [ProducesResponseType(typeof(List<Tag>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAllTags()
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
+
+            var userId = TestUser.Id;
+            _logger.LogInformation("Received request to get all tags for user: {UserId}", userId);
+
             try
             {
-                var tags = await _tagService.GetAllTagsByUserIdAsync();
-                return Ok(new { requestId, tags });
+                var tags = await _tagService.GetAllTagsByUserIdAsync(userId);
+
+                return Ok(new
+                {
+                    requestId,
+                    tags
+                });
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
-                _logger.LogError(ex, "An unexpected error occurred while retrieving tags.");
-                return StatusCode(500, new { requestId, errorMessage = "An unexpected error occurred." });
+                return NotFound(new ClientErrorSituation
+                {
+                    RequestId = requestId,
+                    ErrorMessage = ex.Message
+                });
             }
         }
     }

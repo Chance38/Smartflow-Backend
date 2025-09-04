@@ -6,7 +6,8 @@ namespace SmartFlowBackend.Domain.Interfaces;
 public interface IRecordService
 {
     Task AddRecordAsync(AddRecordRequest request, Guid userId);
-    Task<GetThisMonthRecordResponse> GetThisMonthRecordsAsync(Guid userId);
-    Task<GetLastSixMonthRecordsResponse> GetLastSixMonthRecordsAsync(Guid userId);
-    Task<GetAllMonthRecordsResponse> GetAllMonthRecordsAsync(Guid userId);
+    Task<List<Expense>> GetThisMonthExpensesAsync(Guid userId);
+    Task<List<RecordPerMonth>> GetThisMonthRecordsAsync(Guid userId);
+    Task<List<RecordPerMonth>> GetLastSixMonthRecordsAsync(Guid userId);
+    Task<List<RecordPerMonth>> GetAllMonthRecordsAsync(Guid userId);
 }

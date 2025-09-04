@@ -2,13 +2,13 @@ using System.Text.Json.Serialization;
 
 namespace SmartFlowBackend.Domain.Contracts;
 
-public class TagDto
+public class Tag
 {
-    [JsonPropertyName("id")]
-    public Guid Id { get; set; }
-
     [JsonPropertyName("name")]
     public required string Name { get; set; }
+
+    [JsonPropertyName("category")]
+    public required string Category { get; set; }
 }
 
 public class AddTagRequest

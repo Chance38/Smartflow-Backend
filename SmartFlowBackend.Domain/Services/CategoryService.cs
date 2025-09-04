@@ -13,15 +13,19 @@ namespace SmartFlowBackend.Domain.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task AddCategoryAsync(AddCategoryRequest request)
+        public async Task AddCategoryAsync(AddCategoryRequest req, Guid userId)
         {
-            var userId = TestUser.Id;
+            var user = await _unitOfWork.User.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                throw new ArgumentException("User not found");
+            }
 
             var category = new Domain.Entities.Category
             {
                 Id = Guid.NewGuid(),
-                Name = request.Name,
-                Type = request.Type,
+                Name = req.Name,
+                Type = req.Type,
                 UserId = userId
             };
 
@@ -29,10 +33,15 @@ namespace SmartFlowBackend.Domain.Services
             await _unitOfWork.SaveAsync();
         }
 
-        public async Task<List<Category>> GetAllCategoriesByUserIdAsync()
+        public async Task<List<Category>> GetAllCategoriesByUserIdAsync(Guid userId)
         {
-            var userId = TestUser.Id;
-            var categories = await _unitOfWork.Category.GetAllCategoriesByUserIdAsync(userId);
+            var user = await _unitOfWork.User.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                throw new ArgumentException("User not found");
+            }
+
+            var categories = await _unitOfWork.Category.FindAllAsync(c => c.UserId == userId);
 
             return categories
                 .Select(c => new Category

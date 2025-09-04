@@ -3,11 +3,12 @@ using SmartFlowBackend.Domain.Interfaces;
 using Middleware;
 using SmartFlowBackend.Domain.Contracts;
 using SmartFlowBackend.Domain;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace SmartFlowBackend.Application.Controller
 {
     [ApiController]
-    [Route("smartflow/v1/record")]
+    [Route("smartflow/v1")]
     public class RecordController : ControllerBase
     {
         private readonly IRecordService _recordService;
@@ -19,8 +20,11 @@ namespace SmartFlowBackend.Application.Controller
             _logger = logger;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> AddRecord([FromBody] AddRecordRequest request)
+        [HttpPost("record")]
+        [ProducesResponseType(typeof(OkSituation), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> AddRecord([FromBody] AddRecordRequest req)
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
 
@@ -29,86 +33,125 @@ namespace SmartFlowBackend.Application.Controller
 
             try
             {
-                await _recordService.AddRecordAsync(request, userId);
+                await _recordService.AddRecordAsync(req, userId);
                 _logger.LogInformation("Create record Successfully");
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new
+                return NotFound(new ClientErrorSituation
                 {
-                    requestId,
-                    errorMessage = ex.Message
+                    RequestId = requestId,
+                    ErrorMessage = ex.Message
                 });
             }
 
-            return Ok(new
+            return Ok(new OkSituation
             {
-                requestId
+                RequestId = requestId
             });
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetRecords([FromQuery] string period)
+        [HttpGet("expenses")]
+        [ProducesResponseType(typeof(GetThisMonthExpensesResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetThisMonthExpenses()
+        {
+            var requestId = ServiceMiddleware.GetRequestId(HttpContext);
+
+            var userId = TestUser.Id;
+            _logger.LogInformation("Received request to get records for user {UserId}", userId);
+
+            try
+            {
+                var expenses = await _recordService.GetThisMonthExpensesAsync(userId);
+                return Ok(new GetThisMonthExpensesResponse
+                {
+                    RequestId = requestId,
+                    Expenses = expenses
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new ClientErrorSituation
+                {
+                    RequestId = requestId,
+                    ErrorMessage = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("month-records")]
+        [ProducesResponseType(typeof(GetMonthRecordsResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetMonthRecords([FromQuery] int period)
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
 
             var userId = TestUser.Id;
             _logger.LogInformation("Received request to get records for user {UserId} with period {Period}", userId, period);
-
-            if (period == "this-month")
+            if (period == 1)
             {
                 try
                 {
                     var response = await _recordService.GetThisMonthRecordsAsync(userId);
-                    return Ok(new
+                    return Ok(new GetMonthRecordsResponse
                     {
-                        requestId,
-                        response
+                        RequestId = requestId,
+                        Records = response
                     });
                 }
                 catch (ArgumentException ex)
                 {
-                    return NotFound(new { requestId, errorMessage = ex.Message });
+                    return NotFound(new ClientErrorSituation
+                    {
+                        RequestId = requestId,
+                        ErrorMessage = ex.Message
+                    });
                 }
             }
-            else if (period == "last-six-months")
+            else if (period == 6)
             {
                 try
                 {
                     var response = await _recordService.GetLastSixMonthRecordsAsync(userId);
-                    return Ok(new
+                    return Ok(new GetMonthRecordsResponse
                     {
-                        requestId,
-                        response
+                        RequestId = requestId,
+                        Records = response
                     });
                 }
                 catch (ArgumentException ex)
                 {
-                    return NotFound(new { requestId, errorMessage = ex.Message });
+                    return NotFound(new ClientErrorSituation
+                    {
+                        RequestId = requestId,
+                        ErrorMessage = ex.Message
+                    });
                 }
             }
-            else if (period == "all-months")
+            else
             {
                 try
                 {
                     var response = await _recordService.GetAllMonthRecordsAsync(userId);
-                    return Ok(new
+                    return Ok(new GetMonthRecordsResponse
                     {
-                        requestId,
-                        response
+                        RequestId = requestId,
+                        Records = response
                     });
                 }
                 catch (ArgumentException ex)
                 {
-                    return NotFound(new { requestId, errorMessage = ex.Message });
+                    return NotFound(new ClientErrorSituation
+                    {
+                        RequestId = requestId,
+                        ErrorMessage = ex.Message
+                    });
                 }
             }
-
-            return BadRequest(new
-            {
-                requestId,
-                errorMessage = "Invalid period specified. Allowed values are 'this-month', 'last-six-months', 'all-months'."
-            });
         }
     }
 }

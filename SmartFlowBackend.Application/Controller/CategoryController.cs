@@ -6,7 +6,7 @@ using SmartFlowBackend.Domain;
 
 namespace SmartFlowBackend.Application.Controller
 {
-    [Route("api/v1/categories")]
+    [Route("smartflow/v1")]
     [ApiController]
     public class CategoryController : ControllerBase
     {
@@ -19,42 +19,51 @@ namespace SmartFlowBackend.Application.Controller
             _logger = logger;
         }
 
-        [HttpPost]
+        [HttpPost("category")]
+        [ProducesResponseType(typeof(OkSituation), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AddCategory([FromBody] AddCategoryRequest req)
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
-            _logger.LogInformation("Received request to add category");
+
+            var userId = TestUser.Id;
+            _logger.LogInformation("Received request to add category for user: {UserId}", userId);
 
             try
             {
-                await _categoryService.AddCategoryAsync(req);
-
+                await _categoryService.AddCategoryAsync(req, userId);
                 _logger.LogInformation("Create category Successfully");
-                return Ok(new
-                {
-                    requestId
-                });
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
-                _logger.LogError(ex, "Error creating category");
-                return StatusCode(500, new
+                return NotFound(new ClientErrorSituation
                 {
-                    requestId,
-                    errorMessage = "An unexpected error occurred"
+                    RequestId = requestId,
+                    ErrorMessage = ex.Message
                 });
             }
+
+            return Ok(new OkSituation
+            {
+                RequestId = requestId
+            });
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllCategoriesByUserId()
+        [HttpGet("categories")]
+        [ProducesResponseType(typeof(List<Category>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAllCategories()
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
-            _logger.LogInformation("Received request to get all categories for user: {UserId}", TestUser.Id);
+
+            var userId = TestUser.Id;
+            _logger.LogInformation("Received request to get all categories for user: {UserId}", userId);
 
             try
             {
-                var categories = await _categoryService.GetAllCategoriesByUserIdAsync();
+                var categories = await _categoryService.GetAllCategoriesByUserIdAsync(userId);
 
                 return Ok(new
                 {
@@ -62,10 +71,13 @@ namespace SmartFlowBackend.Application.Controller
                     categories
                 });
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
-                _logger.LogError(ex, "Error getting categories");
-                return StatusCode(500, new { requestId, message = "An error occurred" });
+                return NotFound(new ClientErrorSituation
+                {
+                    RequestId = requestId,
+                    ErrorMessage = ex.Message
+                });
             }
         }
 

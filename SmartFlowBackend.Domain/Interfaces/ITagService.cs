@@ -4,7 +4,7 @@ namespace SmartFlowBackend.Domain.Interfaces
 {
     public interface ITagService
     {
-        Task AddTagAsync(AddTagRequest request);
-        Task<List<TagDto>> GetAllTagsByUserIdAsync();
+        Task AddTagAsync(AddTagRequest request, Guid userId);
+        Task<List<Tag>> GetAllTagsByUserIdAsync(Guid userId);
     }
 }

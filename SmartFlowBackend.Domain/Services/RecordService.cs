@@ -97,7 +97,7 @@ namespace SmartFlowBackend.Domain.Services
             await _unitOfWork.SaveAsync();
         }
 
-        public async Task<GetThisMonthRecordResponse> GetThisMonthRecordsAsync(Guid userId)
+        public async Task<List<Expense>> GetThisMonthExpensesAsync(Guid userId)
         {
             var user = await _unitOfWork.User.GetByIdAsync(userId);
             if (user == null)
@@ -106,10 +106,7 @@ namespace SmartFlowBackend.Domain.Services
             }
 
             var records = await _unitOfWork.Record.GetRecordsByUserIdAndMonthAsync(userId, DateTime.Now.Year, DateTime.Now.Month);
-            var summary = await _unitOfWork.MonthlySummary.FindAsync(s => s.UserId == userId && s.Year == DateTime.Now.Year && s.Month == DateTime.Now.Month);
 
-            var totalExpense = summary?.Expense ?? 0;
-            var totalIncome = summary?.Income ?? 0;
             var expenses = records
                 .Where(r => r.Type == CategoryType.Expense)
                 .GroupBy(r => r.Category.Name)
@@ -120,16 +117,31 @@ namespace SmartFlowBackend.Domain.Services
                 })
                 .ToList();
 
-            return new GetThisMonthRecordResponse
-            {
-                Balance = user.Balance,
-                TotalIncome = totalIncome,
-                TotalExpense = totalExpense,
-                Expenses = expenses
-            };
+            return expenses;
         }
 
-        public async Task<GetLastSixMonthRecordsResponse> GetLastSixMonthRecordsAsync(Guid userId)
+        public async Task<List<RecordPerMonth>> GetThisMonthRecordsAsync(Guid userId)
+        {
+            var user = await _unitOfWork.User.GetByIdAsync(userId);
+            if (user == null)
+            {
+                throw new ArgumentException("User not found");
+            }
+
+            var summary = await _unitOfWork.MonthlySummary.FindAsync(s => s.UserId == userId && s.Year == DateTime.Now.Year && s.Month == DateTime.Now.Month);
+
+            var record = summary != null ? new RecordPerMonth
+            {
+                Year = summary.Year,
+                Month = summary.Month,
+                Expense = summary.Expense,
+                Income = summary.Income
+            } : null;
+
+            return record != null ? new List<RecordPerMonth> { record } : new List<RecordPerMonth>();
+        }
+
+        public async Task<List<RecordPerMonth>> GetLastSixMonthRecordsAsync(Guid userId)
         {
             var user = await _unitOfWork.User.GetByIdAsync(userId);
             if (user == null)
@@ -169,13 +181,10 @@ namespace SmartFlowBackend.Domain.Services
                 }
             }
 
-            return new GetLastSixMonthRecordsResponse
-            {
-                Records = records
-            };
+            return records;
         }
 
-        public async Task<GetAllMonthRecordsResponse> GetAllMonthRecordsAsync(Guid userId)
+        public async Task<List<RecordPerMonth>> GetAllMonthRecordsAsync(Guid userId)
         {
             var user = await _unitOfWork.User.GetByIdAsync(userId);
             if (user == null)
@@ -195,10 +204,7 @@ namespace SmartFlowBackend.Domain.Services
                 })
                 .ToList();
 
-            return new GetAllMonthRecordsResponse
-            {
-                Records = groupedRecords
-            };
+            return groupedRecords;
         }
     }
 }
