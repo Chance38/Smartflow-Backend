@@ -22,9 +22,10 @@ namespace SmartFlowBackend.Domain.Services
                 throw new ArgumentException("User not found");
             }
 
-            if (user.Tags.Any(t => t.Name == req.Name))
+            var existingTag = await _unitOfWork.Tag.FindAsync(t => t.UserId == userId && t.Name == req.Name);
+            if (existingTag != null)
             {
-                throw new ArgumentException("Tag with the same name already exists for the user");
+                throw new ArgumentException("Tag with the same name already exists.");
             }
 
             var category = await _unitOfWork.Category.FindAsync(c => c.Name == req.Category && c.UserId == userId);

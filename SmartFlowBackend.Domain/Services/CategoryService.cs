@@ -13,7 +13,7 @@ namespace SmartFlowBackend.Domain.Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task AddCategoryAsync(AddCategoryRequest req, Guid userId)
+        public async Task AddCategoryAsync(AddCategoryRequest request, Guid userId)
         {
             var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
             if (user == null)
@@ -21,16 +21,17 @@ namespace SmartFlowBackend.Domain.Services
                 throw new ArgumentException("User not found");
             }
 
-            if (user.Categories.Any(c => c.Name == req.Name))
+            var existingCategory = await _unitOfWork.Category.FindAsync(c => c.UserId == userId && c.Name == request.Name);
+            if (existingCategory != null)
             {
-                throw new ArgumentException("Category with the same name already exists for the user");
+                throw new ArgumentException("Category with the same name already exists.");
             }
 
             var category = new Domain.Entities.Category
             {
                 Id = Guid.NewGuid(),
-                Name = req.Name,
-                Type = req.Type,
+                Name = request.Name,
+                Type = request.Type,
                 UserId = userId
             };
 
