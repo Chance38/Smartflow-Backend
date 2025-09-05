@@ -30,3 +30,18 @@ public class DeleteCategoryRequest
     [Required(ErrorMessage = "Category Name is required")]
     public required string Name { get; set; }
 }
+
+public class UpdateCategoryRequest
+{
+    [JsonPropertyName("oldName")]
+    [Required(ErrorMessage = "Old Category Name is required")]
+    public required string OldName { get; set; }
+
+    [JsonPropertyName("newName")]
+    [Required(ErrorMessage = "New Category Name is required")]
+    public required string NewName { get; set; }
+
+    [JsonPropertyName("type")]
+    [Required(ErrorMessage = "Category Type is required")]
+    public required CategoryType Type { get; set; }
+}

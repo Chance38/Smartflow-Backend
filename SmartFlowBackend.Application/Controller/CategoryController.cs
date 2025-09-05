@@ -81,7 +81,10 @@ namespace SmartFlowBackend.Application.Controller
             }
         }
 
-        [HttpDelete]
+        [HttpDelete("category")]
+        [ProducesResponseType(typeof(OkSituation), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteCategory([FromBody] DeleteCategoryRequest req)
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
@@ -93,6 +96,37 @@ namespace SmartFlowBackend.Application.Controller
             {
                 await _categoryService.DeleteCategoryAsync(userId, req.Name);
                 _logger.LogInformation("Deleted category successfully");
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new ClientErrorSituation
+                {
+                    RequestId = requestId,
+                    ErrorMessage = ex.Message
+                });
+            }
+
+            return Ok(new OkSituation
+            {
+                RequestId = requestId
+            });
+        }
+
+        [HttpPut("category")]
+        [ProducesResponseType(typeof(OkSituation), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UpdateCategory([FromBody] UpdateCategoryRequest req)
+        {
+            var requestId = ServiceMiddleware.GetRequestId(HttpContext);
+
+            var userId = TestUser.Id;
+            _logger.LogInformation("Received request to update category for user: {UserId}", userId);
+
+            try
+            {
+                await _categoryService.UpdateCategoryAsync(req, userId);
+                _logger.LogInformation("Updated category successfully");
             }
             catch (ArgumentException ex)
             {

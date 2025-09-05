@@ -81,5 +81,67 @@ namespace SmartFlowBackend.Application.Controller
                 });
             }
         }
+
+        [HttpDelete("tag/{tagName}")]
+        [ProducesResponseType(typeof(OkSituation), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> DeleteTag([FromBody] DeleteTagRequest req)
+        {
+            var requestId = ServiceMiddleware.GetRequestId(HttpContext);
+
+            var userId = TestUser.Id;
+            _logger.LogInformation("Received request to delete tag '{TagName}' for user: {UserId}", req.Name, userId);
+
+            try
+            {
+                await _tagService.DeleteTagAsync(userId, req.Name);
+                _logger.LogInformation("Delete tag '{TagName}' successfully", req.Name);
+
+                return Ok(new OkSituation
+                {
+                    RequestId = requestId
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new ClientErrorSituation
+                {
+                    RequestId = requestId,
+                    ErrorMessage = ex.Message
+                });
+            }
+        }
+
+        [HttpPut("tag")]
+        [ProducesResponseType(typeof(OkSituation), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> UpdateTag([FromBody] UpdateTagRequest req)
+        {
+            var requestId = ServiceMiddleware.GetRequestId(HttpContext);
+
+            var userId = TestUser.Id;
+            _logger.LogInformation("Received request to update tag for user: {UserId}", userId);
+
+            try
+            {
+                await _tagService.UpdateTagAsync(req, userId);
+                _logger.LogInformation("Update tag Successfully");
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new ClientErrorSituation
+                {
+                    RequestId = requestId,
+                    ErrorMessage = ex.Message
+                });
+            }
+
+            return Ok(new OkSituation
+            {
+                RequestId = requestId
+            });
+        }
     }
 }

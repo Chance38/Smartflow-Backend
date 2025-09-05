@@ -77,5 +77,32 @@ namespace SmartFlowBackend.Domain.Services
             await _unitOfWork.Tag.DeleteAsync(tag.Id);
             await _unitOfWork.SaveAsync();
         }
+
+        public async Task UpdateTagAsync(UpdateTagRequest request, Guid userId)
+        {
+            var user = await _unitOfWork.User.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                throw new ArgumentException("User not found");
+            }
+
+            var tag = await _unitOfWork.Tag.FindAsync(t => t.UserId == userId && t.Name == request.OldName);
+            if (tag == null)
+            {
+                throw new ArgumentException("Tag not found");
+            }
+
+            var category = await _unitOfWork.Category.FindAsync(c => c.Name == request.CategoryName && c.UserId == userId);
+            if (category == null)
+            {
+                throw new ArgumentException("Category not found for the user");
+            }
+
+            tag.Name = request.NewName;
+            tag.CategoryId = category.Id;
+
+            await _unitOfWork.Tag.UpdateAsync(tag);
+            await _unitOfWork.SaveAsync();
+        }
     }
 }
