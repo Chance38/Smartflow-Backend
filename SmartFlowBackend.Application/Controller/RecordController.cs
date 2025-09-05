@@ -63,14 +63,10 @@ namespace SmartFlowBackend.Application.Controller
             var userId = TestUser.Id;
             _logger.LogInformation("Received request to get records for user {UserId}", userId);
 
+            var expenses = new List<Expense>();
             try
             {
-                var expenses = await _recordService.GetThisMonthExpensesAsync(userId);
-                return Ok(new GetThisMonthExpensesResponse
-                {
-                    RequestId = requestId,
-                    Expenses = expenses
-                });
+                expenses = await _recordService.GetThisMonthExpensesAsync(userId);
             }
             catch (ArgumentException ex)
             {
@@ -80,6 +76,12 @@ namespace SmartFlowBackend.Application.Controller
                     ErrorMessage = ex.Message
                 });
             }
+
+            return Ok(new GetThisMonthExpensesResponse
+            {
+                RequestId = requestId,
+                Expenses = expenses
+            });
         }
 
         [HttpGet("month-records")]
@@ -98,11 +100,11 @@ namespace SmartFlowBackend.Application.Controller
             {
                 if (!period.HasValue)
                 {
-                    var response = await _recordService.GetAllMonthRecordsAsync(userId);
+                    var records = await _recordService.GetAllMonthRecordsAsync(userId);
                     return Ok(new GetMonthRecordsResponse
                     {
                         RequestId = requestId,
-                        Records = response
+                        Records = records
                     });
                 }
 
@@ -110,20 +112,20 @@ namespace SmartFlowBackend.Application.Controller
                 {
                     case 1:
                         {
-                            var response = await _recordService.GetThisMonthRecordsAsync(userId);
+                            var records = await _recordService.GetThisMonthRecordsAsync(userId);
                             return Ok(new GetMonthRecordsResponse
                             {
                                 RequestId = requestId,
-                                Records = response
+                                Records = records
                             });
                         }
                     case 6:
                         {
-                            var response = await _recordService.GetLastSixMonthRecordsAsync(userId);
+                            var records = await _recordService.GetLastSixMonthRecordsAsync(userId);
                             return Ok(new GetMonthRecordsResponse
                             {
                                 RequestId = requestId,
-                                Records = response
+                                Records = records
                             });
                         }
                     default:

@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using SmartFlowBackend.Domain.Contracts;
 using SmartFlowBackend.Domain.Entities;
 using SmartFlowBackend.Domain.Interfaces;
@@ -15,15 +16,53 @@ namespace SmartFlowBackend.Domain.Services
 
         public async Task AddRecordAsync(AddRecordRequest request, Guid userId)
         {
-            var user = await _unitOfWork.User.GetUserByIdAsync(userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");
             }
 
-            var summary = await _unitOfWork.MonthlySummary.FindAsync(s => s.UserId == userId && s.Year == request.Date.Year && s.Month == request.Date.Month);
+            var record = new Record
+            {
+                Id = Guid.NewGuid(),
+                Amount = request.Amount,
+                Date = request.Date,
+                UserId = userId
+            };
 
-            if (request.Type == CategoryType.Expense)
+            var category = await _unitOfWork.Category.FindAsync(c => c.Name == request.Category);
+            if (request.Tag != null && request.Tag.Any())
+            {
+                var tags = await _unitOfWork.Tag.FindAllAsync(t => request.Tag.Contains(t.Name), include: q => q.Include(t => t.Category));
+                if (tags == null || !tags.Any())
+                {
+                    throw new ArgumentException("Tag not found");
+                }
+
+                foreach (var tag in tags)
+                {
+                    record.Tags.Add(tag);
+                }
+                record.TagNames.AddRange(tags.Select(t => t.Name));
+                record.CategoryId = tags.First().CategoryId;
+                record.CategoryName = tags.First().Category.Name;
+                record.Type = tags.First().Category.Type;
+            }
+            else
+            {
+                if (category == null)
+                {
+                    throw new ArgumentException("Category not found");
+                }
+
+                record.CategoryId = category.Id;
+                record.CategoryName = category.Name;
+                record.Type = category.Type;
+            }
+            await _unitOfWork.Record.AddAsync(record);
+
+            var summary = await _unitOfWork.MonthlySummary.FindAsync(s => s.UserId == userId && s.Year == request.Date.Year && s.Month == request.Date.Month);
+            if (record.Type == CategoryType.Expense)
             {
                 user.Balance -= request.Amount;
                 if (summary == null)
@@ -66,42 +105,12 @@ namespace SmartFlowBackend.Domain.Services
                 }
             }
 
-            var category = await _unitOfWork.Category.GetCategoryByNameAsync(request.Category);
-            if (category == null)
-            {
-                throw new ArgumentException("Category not found");
-            }
-
-            var record = new Record
-            {
-                Id = Guid.NewGuid(),
-                Type = request.Type,
-                Amount = request.Amount,
-                Date = request.Date,
-                UserId = userId,
-                CategoryId = category.Id,
-                CategoryName = category.Name
-            };
-
-            if (request.Tag != null)
-            {
-                var tag = await _unitOfWork.Tag.GetTagByNameAsync(request.Tag);
-                if (tag == null)
-                {
-                    throw new ArgumentException("Tag not found");
-                }
-
-                record.Tags.Add(tag);
-                record.TagNames.Add(tag.Name);
-            }
-
-            await _unitOfWork.Record.AddAsync(record);
             await _unitOfWork.SaveAsync();
         }
 
         public async Task<List<Expense>> GetThisMonthExpensesAsync(Guid userId)
         {
-            var user = await _unitOfWork.User.GetByIdAsync(userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");
@@ -123,7 +132,7 @@ namespace SmartFlowBackend.Domain.Services
 
         public async Task<List<RecordPerMonth>> GetThisMonthRecordsAsync(Guid userId)
         {
-            var user = await _unitOfWork.User.GetByIdAsync(userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");
@@ -131,20 +140,25 @@ namespace SmartFlowBackend.Domain.Services
 
             var summary = await _unitOfWork.MonthlySummary.FindAsync(s => s.UserId == userId && s.Year == DateTime.Now.Year && s.Month == DateTime.Now.Month);
 
-            var record = summary != null ? new RecordPerMonth
+            if (summary == null)
+            {
+                return new List<RecordPerMonth>();
+            }
+
+            var record = new RecordPerMonth
             {
                 Year = summary.Year,
                 Month = summary.Month,
                 Expense = summary.Expense,
                 Income = summary.Income
-            } : null;
+            };
 
-            return record != null ? new List<RecordPerMonth> { record } : new List<RecordPerMonth>();
+            return new List<RecordPerMonth> { record };
         }
 
         public async Task<List<RecordPerMonth>> GetLastSixMonthRecordsAsync(Guid userId)
         {
-            var user = await _unitOfWork.User.GetByIdAsync(userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");
@@ -187,7 +201,7 @@ namespace SmartFlowBackend.Domain.Services
 
         public async Task<List<RecordPerMonth>> GetAllMonthRecordsAsync(Guid userId)
         {
-            var user = await _unitOfWork.User.GetByIdAsync(userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");

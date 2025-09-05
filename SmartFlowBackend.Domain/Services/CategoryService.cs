@@ -15,10 +15,15 @@ namespace SmartFlowBackend.Domain.Services
 
         public async Task AddCategoryAsync(AddCategoryRequest req, Guid userId)
         {
-            var user = await _unitOfWork.User.GetUserByIdAsync(userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");
+            }
+
+            if (user.Categories.Any(c => c.Name == req.Name))
+            {
+                throw new ArgumentException("Category with the same name already exists for the user");
             }
 
             var category = new Domain.Entities.Category
@@ -35,7 +40,7 @@ namespace SmartFlowBackend.Domain.Services
 
         public async Task<List<Category>> GetAllCategoriesByUserIdAsync(Guid userId)
         {
-            var user = await _unitOfWork.User.GetUserByIdAsync(userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");
@@ -53,16 +58,16 @@ namespace SmartFlowBackend.Domain.Services
 
         public async Task DeleteCategoryAsync(Guid userId, string categoryName)
         {
-            var user = await _unitOfWork.User.GetUserByIdAsync(userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
             if (user == null)
             {
-                throw new ArgumentException("User not found");
+                return;
             }
 
             var category = await _unitOfWork.Category.FindAsync(c => c.UserId == userId && c.Name == categoryName);
             if (category == null)
             {
-                throw new ArgumentException("Category not found");
+                return;
             }
 
             await _unitOfWork.Category.DeleteAsync(category.Id);
@@ -71,7 +76,7 @@ namespace SmartFlowBackend.Domain.Services
 
         public async Task UpdateCategoryAsync(UpdateCategoryRequest req, Guid userId)
         {
-            var user = await _unitOfWork.User.GetUserByIdAsync(userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");

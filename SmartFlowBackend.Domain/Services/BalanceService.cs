@@ -1,5 +1,3 @@
-using SmartFlowBackend.Domain.Contracts;
-using SmartFlowBackend.Domain.Entities;
 using SmartFlowBackend.Domain.Interfaces;
 
 namespace SmartFlowBackend.Domain.Services

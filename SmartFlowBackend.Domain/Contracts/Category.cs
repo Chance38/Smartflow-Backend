@@ -24,6 +24,15 @@ public class AddCategoryRequest
     public required CategoryType Type { get; set; }
 }
 
+public class GetAllCategoriesResponse
+{
+    [JsonPropertyName("requestId")]
+    public required string RequestId { get; set; }
+
+    [JsonPropertyName("categories")]
+    public required List<Category> Categories { get; set; }
+}
+
 public class DeleteCategoryRequest
 {
     [JsonPropertyName("name")]

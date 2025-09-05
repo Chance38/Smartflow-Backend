@@ -52,7 +52,7 @@ namespace SmartFlowBackend.Application.Controller
         }
 
         [HttpGet("tags")]
-        [ProducesResponseType(typeof(List<Tag>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(GetAllTagsResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllTags()
@@ -62,15 +62,10 @@ namespace SmartFlowBackend.Application.Controller
             var userId = TestUser.Id;
             _logger.LogInformation("Received request to get all tags for user: {UserId}", userId);
 
+            var tags = new List<Tag>();
             try
             {
-                var tags = await _tagService.GetAllTagsByUserIdAsync(userId);
-
-                return Ok(new
-                {
-                    requestId,
-                    tags
-                });
+                tags = await _tagService.GetAllTagsByUserIdAsync(userId);
             }
             catch (ArgumentException ex)
             {
@@ -80,6 +75,12 @@ namespace SmartFlowBackend.Application.Controller
                     ErrorMessage = ex.Message
                 });
             }
+
+            return Ok(new GetAllTagsResponse
+            {
+                RequestId = requestId,
+                Tags = tags
+            });
         }
 
         [HttpDelete("tag/{tagName}")]
@@ -93,24 +94,13 @@ namespace SmartFlowBackend.Application.Controller
             var userId = TestUser.Id;
             _logger.LogInformation("Received request to delete tag '{TagName}' for user: {UserId}", req.Name, userId);
 
-            try
-            {
-                await _tagService.DeleteTagAsync(userId, req.Name);
-                _logger.LogInformation("Delete tag '{TagName}' successfully", req.Name);
+            await _tagService.DeleteTagAsync(userId, req.Name);
 
-                return Ok(new OkSituation
-                {
-                    RequestId = requestId
-                });
-            }
-            catch (ArgumentException ex)
+            return Ok(new OkSituation
             {
-                return NotFound(new ClientErrorSituation
-                {
-                    RequestId = requestId,
-                    ErrorMessage = ex.Message
-                });
-            }
+                RequestId = requestId
+            });
+
         }
 
         [HttpPut("tag")]
@@ -127,7 +117,6 @@ namespace SmartFlowBackend.Application.Controller
             try
             {
                 await _tagService.UpdateTagAsync(req, userId);
-                _logger.LogInformation("Update tag Successfully");
             }
             catch (ArgumentException ex)
             {

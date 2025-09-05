@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using SmartFlowBackend.Domain.Entities;
 
@@ -6,18 +7,20 @@ namespace SmartFlowBackend.Domain.Contracts;
 public class AddRecordRequest
 {
     [JsonPropertyName("category")]
-    public required string Category { get; set; }
+    public string? Category { get; set; }
 
     [JsonPropertyName("type")]
-    public required CategoryType Type { get; set; }
+    public CategoryType? Type { get; set; }
 
     [JsonPropertyName("tag")]
-    public string? Tag { get; set; }
+    public List<string>? Tag { get; set; }
 
     [JsonPropertyName("amount")]
+    [Required(ErrorMessage = "Amount is required")]
     public required float Amount { get; set; }
 
     [JsonPropertyName("date")]
+    [Required(ErrorMessage = "Date is required")]
     public required DateOnly Date { get; set; }
 }
 

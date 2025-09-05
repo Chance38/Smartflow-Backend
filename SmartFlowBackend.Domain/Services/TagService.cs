@@ -16,14 +16,19 @@ namespace SmartFlowBackend.Domain.Services
 
         public async Task AddTagAsync(AddTagRequest req, Guid userId)
         {
-            var user = await _unitOfWork.User.GetUserByIdAsync(userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");
             }
 
-            var category = await _unitOfWork.Category.GetCategoryByNameAsync(req.Category);
-            if (category == null || category.UserId != userId)
+            if (user.Tags.Any(t => t.Name == req.Name))
+            {
+                throw new ArgumentException("Tag with the same name already exists for the user");
+            }
+
+            var category = await _unitOfWork.Category.FindAsync(c => c.Name == req.Category && c.UserId == userId);
+            if (category == null)
             {
                 throw new ArgumentException("Category not found for the user");
             }
@@ -42,7 +47,7 @@ namespace SmartFlowBackend.Domain.Services
 
         public async Task<List<Tag>> GetAllTagsByUserIdAsync(Guid userId)
         {
-            var user = await _unitOfWork.User.GetUserByIdAsync(userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");
@@ -62,16 +67,16 @@ namespace SmartFlowBackend.Domain.Services
 
         public async Task DeleteTagAsync(Guid userId, string tagName)
         {
-            var user = await _unitOfWork.User.GetUserByIdAsync(userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
             if (user == null)
             {
-                throw new ArgumentException("User not found");
+                return;
             }
 
             var tag = await _unitOfWork.Tag.FindAsync(t => t.UserId == userId && t.Name == tagName);
             if (tag == null)
             {
-                throw new ArgumentException("Tag not found");
+                return;
             }
 
             await _unitOfWork.Tag.DeleteAsync(tag.Id);
@@ -80,7 +85,7 @@ namespace SmartFlowBackend.Domain.Services
 
         public async Task UpdateTagAsync(UpdateTagRequest request, Guid userId)
         {
-            var user = await _unitOfWork.User.GetUserByIdAsync(userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");

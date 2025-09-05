@@ -51,7 +51,7 @@ namespace SmartFlowBackend.Application.Controller
         }
 
         [HttpGet("categories")]
-        [ProducesResponseType(typeof(List<Category>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(GetAllCategoriesResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllCategories()
@@ -61,15 +61,10 @@ namespace SmartFlowBackend.Application.Controller
             var userId = TestUser.Id;
             _logger.LogInformation("Received request to get all categories for user: {UserId}", userId);
 
+            var categories = new List<Category>();
             try
             {
-                var categories = await _categoryService.GetAllCategoriesByUserIdAsync(userId);
-
-                return Ok(new
-                {
-                    requestId,
-                    categories
-                });
+                categories = await _categoryService.GetAllCategoriesByUserIdAsync(userId);
             }
             catch (ArgumentException ex)
             {
@@ -79,6 +74,12 @@ namespace SmartFlowBackend.Application.Controller
                     ErrorMessage = ex.Message
                 });
             }
+
+            return Ok(new GetAllCategoriesResponse
+            {
+                RequestId = requestId,
+                Categories = categories
+            });
         }
 
         [HttpDelete("category")]
@@ -92,19 +93,7 @@ namespace SmartFlowBackend.Application.Controller
             var userId = TestUser.Id;
             _logger.LogInformation("Received request to delete category for user: {UserId}", userId);
 
-            try
-            {
-                await _categoryService.DeleteCategoryAsync(userId, req.Name);
-                _logger.LogInformation("Deleted category successfully");
-            }
-            catch (ArgumentException ex)
-            {
-                return NotFound(new ClientErrorSituation
-                {
-                    RequestId = requestId,
-                    ErrorMessage = ex.Message
-                });
-            }
+            await _categoryService.DeleteCategoryAsync(userId, req.Name);
 
             return Ok(new OkSituation
             {
