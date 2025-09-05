@@ -38,7 +38,7 @@ namespace SmartFlowBackend.Application.Controller
             }
             catch (ArgumentException ex)
             {
-                return NotFound(new ClientErrorSituation
+                return BadRequest(new ClientErrorSituation
                 {
                     RequestId = requestId,
                     ErrorMessage = ex.Message
@@ -53,7 +53,7 @@ namespace SmartFlowBackend.Application.Controller
 
         [HttpGet("tags")]
         [ProducesResponseType(typeof(GetAllTagsResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllTags()
         {
@@ -69,7 +69,7 @@ namespace SmartFlowBackend.Application.Controller
             }
             catch (ArgumentException ex)
             {
-                return NotFound(new ClientErrorSituation
+                return BadRequest(new ClientErrorSituation
                 {
                     RequestId = requestId,
                     ErrorMessage = ex.Message
@@ -85,7 +85,6 @@ namespace SmartFlowBackend.Application.Controller
 
         [HttpDelete("tag/{tagName}")]
         [ProducesResponseType(typeof(OkSituation), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteTag([FromBody] DeleteTagRequest req)
         {
@@ -105,7 +104,7 @@ namespace SmartFlowBackend.Application.Controller
 
         [HttpPut("tag")]
         [ProducesResponseType(typeof(OkSituation), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateTag([FromBody] UpdateTagRequest req)
         {
@@ -120,7 +119,7 @@ namespace SmartFlowBackend.Application.Controller
             }
             catch (ArgumentException ex)
             {
-                return NotFound(new ClientErrorSituation
+                return BadRequest(new ClientErrorSituation
                 {
                     RequestId = requestId,
                     ErrorMessage = ex.Message

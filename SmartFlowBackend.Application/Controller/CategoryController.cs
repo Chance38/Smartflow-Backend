@@ -21,7 +21,7 @@ namespace SmartFlowBackend.Application.Controller
 
         [HttpPost("category")]
         [ProducesResponseType(typeof(OkSituation), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AddCategory([FromBody] AddCategoryRequest req)
         {
@@ -37,7 +37,7 @@ namespace SmartFlowBackend.Application.Controller
             }
             catch (ArgumentException ex)
             {
-                return NotFound(new ClientErrorSituation
+                return BadRequest(new ClientErrorSituation
                 {
                     RequestId = requestId,
                     ErrorMessage = ex.Message
@@ -52,7 +52,7 @@ namespace SmartFlowBackend.Application.Controller
 
         [HttpGet("categories")]
         [ProducesResponseType(typeof(GetAllCategoriesResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAllCategories()
         {
@@ -68,7 +68,7 @@ namespace SmartFlowBackend.Application.Controller
             }
             catch (ArgumentException ex)
             {
-                return NotFound(new ClientErrorSituation
+                return BadRequest(new ClientErrorSituation
                 {
                     RequestId = requestId,
                     ErrorMessage = ex.Message
@@ -84,7 +84,6 @@ namespace SmartFlowBackend.Application.Controller
 
         [HttpDelete("category")]
         [ProducesResponseType(typeof(OkSituation), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteCategory([FromBody] DeleteCategoryRequest req)
         {
@@ -103,7 +102,7 @@ namespace SmartFlowBackend.Application.Controller
 
         [HttpPut("category")]
         [ProducesResponseType(typeof(OkSituation), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> UpdateCategory([FromBody] UpdateCategoryRequest req)
         {
@@ -119,7 +118,7 @@ namespace SmartFlowBackend.Application.Controller
             }
             catch (ArgumentException ex)
             {
-                return NotFound(new ClientErrorSituation
+                return BadRequest(new ClientErrorSituation
                 {
                     RequestId = requestId,
                     ErrorMessage = ex.Message

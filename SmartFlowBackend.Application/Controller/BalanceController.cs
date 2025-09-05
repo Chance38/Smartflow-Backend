@@ -22,7 +22,7 @@ namespace SmartFlowBackend.Application.Controller
 
         [HttpPost("balance")]
         [ProducesResponseType(typeof(GetBalanceResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetBalance()
         {
@@ -42,7 +42,7 @@ namespace SmartFlowBackend.Application.Controller
             }
             catch (ArgumentException ex)
             {
-                return NotFound(new ClientErrorSituation
+                return BadRequest(new ClientErrorSituation
                 {
                     RequestId = requestId,
                     ErrorMessage = ex.Message

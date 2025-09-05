@@ -22,7 +22,7 @@ namespace SmartFlowBackend.Application.Controller
 
         [HttpPost("record")]
         [ProducesResponseType(typeof(OkSituation), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> AddRecord([FromBody] AddRecordRequest req)
         {
@@ -38,7 +38,7 @@ namespace SmartFlowBackend.Application.Controller
             }
             catch (ArgumentException ex)
             {
-                return NotFound(new ClientErrorSituation
+                return BadRequest(new ClientErrorSituation
                 {
                     RequestId = requestId,
                     ErrorMessage = ex.Message
@@ -54,7 +54,6 @@ namespace SmartFlowBackend.Application.Controller
         [HttpGet("expenses")]
         [ProducesResponseType(typeof(GetThisMonthExpensesResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetThisMonthExpenses()
         {
@@ -70,7 +69,7 @@ namespace SmartFlowBackend.Application.Controller
             }
             catch (ArgumentException ex)
             {
-                return NotFound(new ClientErrorSituation
+                return BadRequest(new ClientErrorSituation
                 {
                     RequestId = requestId,
                     ErrorMessage = ex.Message
@@ -87,7 +86,6 @@ namespace SmartFlowBackend.Application.Controller
         [HttpGet("month-records")]
         [ProducesResponseType(typeof(GetMonthRecordsResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetMonthRecords([FromQuery] int? period)
         {
@@ -138,7 +136,7 @@ namespace SmartFlowBackend.Application.Controller
             }
             catch (ArgumentException ex)
             {
-                return NotFound(new ClientErrorSituation
+                return BadRequest(new ClientErrorSituation
                 {
                     RequestId = requestId,
                     ErrorMessage = ex.Message
