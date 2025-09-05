@@ -34,6 +34,12 @@ public class PostgresDbContext : DbContext
             .HasIndex(r => r.Date);
 
         modelBuilder.Entity<Record>()
+            .HasOne(r => r.Category)
+            .WithMany(c => c.Records)
+            .HasForeignKey(r => r.CategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        modelBuilder.Entity<Record>()
             .HasMany(r => r.Tags)
             .WithMany(t => t.Records);
 

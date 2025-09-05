@@ -7,5 +7,7 @@ namespace SmartFlowBackend.Domain.Interfaces
         Task AddCategoryAsync(AddCategoryRequest request, Guid userId);
 
         Task<List<Category>> GetAllCategoriesByUserIdAsync(Guid userId);
+
+        Task DeleteCategoryAsync(Guid userId, string categoryName);
     }
 }

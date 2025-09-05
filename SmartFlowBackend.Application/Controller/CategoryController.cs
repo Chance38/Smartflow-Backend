@@ -81,12 +81,32 @@ namespace SmartFlowBackend.Application.Controller
             }
         }
 
-        // [HttpDelete]
-        // public async Task<IActionResult> DeleteCategory([FromBody] DeleteCategoryRequest req)
-        // {
-        //     var requestId = ServiceMiddleware.GetRequestId(HttpContext);
+        [HttpDelete]
+        public async Task<IActionResult> DeleteCategory([FromBody] DeleteCategoryRequest req)
+        {
+            var requestId = ServiceMiddleware.GetRequestId(HttpContext);
 
+            var userId = TestUser.Id;
+            _logger.LogInformation("Received request to delete category for user: {UserId}", userId);
 
-        // }
+            try
+            {
+                await _categoryService.DeleteCategoryAsync(userId, req.Name);
+                _logger.LogInformation("Deleted category successfully");
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new ClientErrorSituation
+                {
+                    RequestId = requestId,
+                    ErrorMessage = ex.Message
+                });
+            }
+
+            return Ok(new OkSituation
+            {
+                RequestId = requestId
+            });
+        }
     }
 }

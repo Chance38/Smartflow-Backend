@@ -80,6 +80,7 @@ namespace SmartFlowBackend.Domain.Services
                 Date = request.Date,
                 UserId = userId,
                 CategoryId = category.Id,
+                CategoryName = category.Name
             };
 
             if (request.Tag != null)
@@ -91,6 +92,7 @@ namespace SmartFlowBackend.Domain.Services
                 }
 
                 record.Tags.Add(tag);
+                record.TagNames.Add(tag.Name);
             }
 
             await _unitOfWork.Record.AddAsync(record);
@@ -105,17 +107,16 @@ namespace SmartFlowBackend.Domain.Services
                 throw new ArgumentException("User not found");
             }
 
-            var records = await _unitOfWork.Record.GetRecordsByUserIdAndMonthAsync(userId, DateTime.Now.Year, DateTime.Now.Month);
+            var records = await _unitOfWork.Record.FindAllAsync(r => r.UserId == userId && r.Date.Year == DateTime.Now.Year && r.Date.Month == DateTime.Now.Month);
 
             var expenses = records
                 .Where(r => r.Type == CategoryType.Expense)
-                .GroupBy(r => r.Category.Name)
+                .GroupBy(r => r.CategoryName)
                 .Select(g => new Expense
                 {
                     Type = g.Key,
                     Amount = g.Sum(r => r.Amount)
-                })
-                .ToList();
+                }).ToList();
 
             return expenses;
         }

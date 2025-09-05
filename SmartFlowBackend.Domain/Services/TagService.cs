@@ -1,6 +1,7 @@
 using SmartFlowBackend.Domain.Contracts;
 using SmartFlowBackend.Domain.Interfaces;
 using SmartFlowBackend.Domain;
+using Microsoft.EntityFrameworkCore;
 
 namespace SmartFlowBackend.Domain.Services
 {
@@ -47,13 +48,34 @@ namespace SmartFlowBackend.Domain.Services
                 throw new ArgumentException("User not found");
             }
 
-            var tags = await _unitOfWork.Tag.FindAllAsync(t => t.UserId == userId);
+            var tags = await _unitOfWork.Tag.FindAllAsync(
+                t => t.UserId == userId,
+                q => q.Include(t => t.Category)
+            );
             return tags
                 .Select(t => new Tag
                 {
                     Name = t.Name,
                     Category = t.Category.Name
                 }).ToList();
+        }
+
+        public async Task DeleteTagAsync(Guid userId, string tagName)
+        {
+            var user = await _unitOfWork.User.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                throw new ArgumentException("User not found");
+            }
+
+            var tag = await _unitOfWork.Tag.FindAsync(t => t.UserId == userId && t.Name == tagName);
+            if (tag == null)
+            {
+                throw new ArgumentException("Tag not found");
+            }
+
+            await _unitOfWork.Tag.DeleteAsync(tag.Id);
+            await _unitOfWork.SaveAsync();
         }
     }
 }

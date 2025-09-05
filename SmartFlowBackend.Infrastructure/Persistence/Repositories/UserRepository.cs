@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using SmartFlowBackend.Domain.Entities;
 using SmartFlowBackend.Domain.Interfaces;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace SmartFlowBackend.Infrastructure.Persistence.Repositories;
 
@@ -31,14 +32,28 @@ public class UserRepository : IUserRepository
         return await _context.Users.ToListAsync();
     }
 
-    public async Task<User?> FindAsync(Expression<Func<User, bool>> predicate)
+    public async Task<User?> FindAsync(Expression<Func<User, bool>> expression, Func<IQueryable<User>, IIncludableQueryable<User, object>>? include = null)
     {
-        return await _context.Users.FirstOrDefaultAsync(predicate);
+        IQueryable<User> query = _context.Users;
+
+        if (include != null)
+        {
+            query = include(query);
+        }
+
+        return await query.FirstOrDefaultAsync(expression);
     }
 
-    public async Task<IEnumerable<User>> FindAllAsync(Expression<Func<User, bool>> predicate)
+    public async Task<IEnumerable<User>> FindAllAsync(Expression<Func<User, bool>> expression, Func<IQueryable<User>, IIncludableQueryable<User, object>>? include = null)
     {
-        return await _context.Users.Where(predicate).ToListAsync();
+        IQueryable<User> query = _context.Users;
+
+        if (include != null)
+        {
+            query = include(query);
+        }
+
+        return await query.Where(expression).ToListAsync();
     }
 
     public async Task AddAsync(User entity)

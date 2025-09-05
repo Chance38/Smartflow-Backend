@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using SmartFlowBackend.Domain.Interfaces;
 using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace SmartFlowBackend.Infrastructure.Persistence.Repositories
 {
@@ -23,14 +24,28 @@ namespace SmartFlowBackend.Infrastructure.Persistence.Repositories
             return await _context.Set<T>().ToListAsync();
         }
 
-        public async Task<T?> FindAsync(Expression<Func<T, bool>> predicate)
+        public async Task<T?> FindAsync(Expression<Func<T, bool>> expression, Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null)
         {
-            return await _context.Set<T>().FirstOrDefaultAsync(predicate);
+            IQueryable<T> query = _context.Set<T>();
+
+            if (include != null)
+            {
+                query = include(query);
+            }
+
+            return await query.FirstOrDefaultAsync(expression);
         }
 
-        public async Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> predicate)
+        public async Task<IEnumerable<T>> FindAllAsync(Expression<Func<T, bool>> expression, Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null)
         {
-            return await _context.Set<T>().Where(predicate).ToListAsync();
+            IQueryable<T> query = _context.Set<T>();
+
+            if (include != null)
+            {
+                query = include(query);
+            }
+
+            return await query.Where(expression).ToListAsync();
         }
 
         public async Task AddAsync(T entity)

@@ -29,6 +29,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IRecordService, RecordService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITagService, TagService>();
+builder.Services.AddScoped<IBalanceService, BalanceService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

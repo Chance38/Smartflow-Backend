@@ -16,11 +16,14 @@ public class Record
 
     // Foreign Keys
     [ForeignKey("Category")]
-    public Guid CategoryId { get; set; }
+    public Guid? CategoryId { get; set; }
     [ForeignKey("User")]
     public Guid UserId { get; set; }
 
+    public string CategoryName { get; set; } = string.Empty;
+    public List<string> TagNames { get; set; } = new();
+
     public ICollection<Tag> Tags { get; set; } = new List<Tag>();
-    public Category Category { get; set; } = null!;
+    public Category? Category { get; set; }
     public User User { get; set; } = null!;
 }

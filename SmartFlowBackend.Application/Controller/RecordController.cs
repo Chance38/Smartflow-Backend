@@ -84,57 +84,19 @@ namespace SmartFlowBackend.Application.Controller
 
         [HttpGet("month-records")]
         [ProducesResponseType(typeof(GetMonthRecordsResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetMonthRecords([FromQuery] int period)
+        public async Task<IActionResult> GetMonthRecords([FromQuery] int? period)
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
 
             var userId = TestUser.Id;
             _logger.LogInformation("Received request to get records for user {UserId} with period {Period}", userId, period);
-            if (period == 1)
+
+            try
             {
-                try
-                {
-                    var response = await _recordService.GetThisMonthRecordsAsync(userId);
-                    return Ok(new GetMonthRecordsResponse
-                    {
-                        RequestId = requestId,
-                        Records = response
-                    });
-                }
-                catch (ArgumentException ex)
-                {
-                    return NotFound(new ClientErrorSituation
-                    {
-                        RequestId = requestId,
-                        ErrorMessage = ex.Message
-                    });
-                }
-            }
-            else if (period == 6)
-            {
-                try
-                {
-                    var response = await _recordService.GetLastSixMonthRecordsAsync(userId);
-                    return Ok(new GetMonthRecordsResponse
-                    {
-                        RequestId = requestId,
-                        Records = response
-                    });
-                }
-                catch (ArgumentException ex)
-                {
-                    return NotFound(new ClientErrorSituation
-                    {
-                        RequestId = requestId,
-                        ErrorMessage = ex.Message
-                    });
-                }
-            }
-            else
-            {
-                try
+                if (!period.HasValue)
                 {
                     var response = await _recordService.GetAllMonthRecordsAsync(userId);
                     return Ok(new GetMonthRecordsResponse
@@ -143,14 +105,42 @@ namespace SmartFlowBackend.Application.Controller
                         Records = response
                     });
                 }
-                catch (ArgumentException ex)
+
+                switch (period.Value)
                 {
-                    return NotFound(new ClientErrorSituation
-                    {
-                        RequestId = requestId,
-                        ErrorMessage = ex.Message
-                    });
+                    case 1:
+                        {
+                            var response = await _recordService.GetThisMonthRecordsAsync(userId);
+                            return Ok(new GetMonthRecordsResponse
+                            {
+                                RequestId = requestId,
+                                Records = response
+                            });
+                        }
+                    case 6:
+                        {
+                            var response = await _recordService.GetLastSixMonthRecordsAsync(userId);
+                            return Ok(new GetMonthRecordsResponse
+                            {
+                                RequestId = requestId,
+                                Records = response
+                            });
+                        }
+                    default:
+                        return BadRequest(new ClientErrorSituation
+                        {
+                            RequestId = requestId,
+                            ErrorMessage = "Invalid period. Supported values are 1 (this month) and 6 (last six months)."
+                        });
                 }
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new ClientErrorSituation
+                {
+                    RequestId = requestId,
+                    ErrorMessage = ex.Message
+                });
             }
         }
     }

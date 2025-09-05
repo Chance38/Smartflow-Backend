@@ -50,5 +50,23 @@ namespace SmartFlowBackend.Domain.Services
                     Type = c.Type
                 }).ToList();
         }
+
+        public async Task DeleteCategoryAsync(Guid userId, string categoryName)
+        {
+            var user = await _unitOfWork.User.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                throw new ArgumentException("User not found");
+            }
+
+            var category = await _unitOfWork.Category.FindAsync(c => c.UserId == userId && c.Name == categoryName);
+            if (category == null)
+            {
+                throw new ArgumentException("Category not found");
+            }
+
+            await _unitOfWork.Category.DeleteAsync(category.Id);
+            await _unitOfWork.SaveAsync();
+        }
     }
 }

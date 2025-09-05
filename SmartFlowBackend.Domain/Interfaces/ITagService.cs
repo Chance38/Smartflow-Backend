@@ -6,5 +6,6 @@ namespace SmartFlowBackend.Domain.Interfaces
     {
         Task AddTagAsync(AddTagRequest request, Guid userId);
         Task<List<Tag>> GetAllTagsByUserIdAsync(Guid userId);
+        Task DeleteTagAsync(Guid userId, string tagName);
     }
 }

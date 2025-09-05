@@ -15,7 +15,7 @@ namespace SmartFlowBackend.Domain.Services
 
         public async Task<float> GetBalanceByUserIdAsync(Guid userId)
         {
-            var user = await _unitOfWork.User.GetUserByIdAsync(userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");
