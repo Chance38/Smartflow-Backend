@@ -11,14 +11,9 @@ build:
   # 直接使用 Kaniko 鏡像，並指定版本號以確保穩定性
   image: gcr.io/kaniko-project/executor:v1.24.0-debug
   script:
-    # 不再需要下載 kaniko-executor 的步驟
-    - mkdir -p /kaniko/.docker
-    - |
-      # 寫入認證資訊
-      cat > /kaniko/.docker/config.json <<EOF
-      {"auths": {"$CI_REGISTRY": {"username": "$CI_REGISTRY_USER", "password": "$CI_REGISTRY_PASSWORD"}}}
-      EOF
-
+    # 寫入認證資訊到 Kaniko 預設的 config.json 位置
+    - echo "{\"auths\": {\"$CI_REGISTRY\": {\"username\": \"$CI_REGISTRY_USER\", \"password\": \"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+      
     # 執行 Kaniko 進行建置與推送到 GitLab Container Registry
     - /kaniko/executor \
       --context "$CI_PROJECT_DIR" \
