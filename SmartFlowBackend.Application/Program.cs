@@ -69,10 +69,13 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var sp = scope.ServiceProvider;
+    var services = scope.ServiceProvider;
     try
     {
-        var uow = sp.GetRequiredService<SmartFlowBackend.Domain.Interfaces.IUnitOfWork>();
+        var dbContext = services.GetRequiredService<PostgresDbContext>();
+        dbContext.Database.Migrate();
+
+        var uow = services.GetRequiredService<SmartFlowBackend.Domain.Interfaces.IUnitOfWork>();
         var existing = uow.User.GetUserByIdAsync(TestUser.Id).GetAwaiter().GetResult();
         if (existing == null)
         {
@@ -90,8 +93,8 @@ using (var scope = app.Services.CreateScope())
     }
     catch (Exception ex)
     {
-        var logger = scope.ServiceProvider.GetService<ILogger<Program>>();
-        logger?.LogError(ex, "Failed to ensure test user exists");
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating or seeding the database.");
     }
 }
 

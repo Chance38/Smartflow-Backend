@@ -13,8 +13,10 @@ services:
       - LOGGER_URL=http://seq:5341
       - ConnectionStrings__Postgres_Connection=Host=postgres;Port=5432;Database=smartflow;Username=smartech;Password=Stt@1234
     depends_on:
-      - seq
-      - postgres
+      postgres:
+        condition: service_healthy
+      seq:
+        condition: service_started
     restart: unless-stopped
     networks:
       - smartflow-networks
@@ -35,6 +37,11 @@ services:
   postgres:
     image: postgres:15
     container_name: smartflow-db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smartech -d smartflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     environment:
       POSTGRES_USER: smartech
       POSTGRES_PASSWORD: Stt@1234

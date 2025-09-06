@@ -8,22 +8,16 @@ COPY "SmartFlowBackend.Infrastructure/SmartFlowBackend.Infrastructure.csproj" "S
 RUN dotnet restore "SmartFlowBackend.sln"
 COPY . .
 WORKDIR "/src/SmartFlowBackend.Application"
-RUN dotnet build "SmartFlowBackend.Application.csproj" -c Release -o /app/build
+# Use dotnet publish for a smaller, optimized output
+RUN dotnet publish "SmartFlowBackend.Application.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-FROM build AS publish
-WORKDIR "/src/SmartFlowBackend.Application"
-RUN dotnet publish "SmartFlowBackend.Application.csproj" -c Release -o /app/publish
-
-# The final runtime image
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS final
+# The final runtime image, using the lightweight ASP.NET runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
-COPY . /src
+# Copy the published output from the build stage
+COPY --from=build /app/publish .
 
 ENV ASPNETCORE_URLS=http://+:8080
-RUN dotnet tool install --global dotnet-ef
-ENV PATH="$PATH:/root/.dotnet/tools"
-RUN chmod +x /src/entrypoint.sh
 EXPOSE 8080
-ENTRYPOINT ["/src/entrypoint.sh"]
-CMD ["dotnet", "/app/SmartFlowBackend.Application.dll"]
+# Correct the entrypoint to point to the dll in the /app directory
+ENTRYPOINT ["dotnet", "SmartFlowBackend.Application.dll"]
