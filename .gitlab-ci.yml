@@ -11,29 +11,9 @@ build:
   before_script:
     - apk add --no-cache ca-certificates curl
   script:
-    - mkdir -p /kaniko
-    - |
-      # 獲取最新版本的 Kaniko 執行器
-      LATEST_VERSION=$(curl -sL https://api.github.com/repos/GoogleContainerTools/kaniko/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
-      ARCH=$(uname -m)
-      if [ "$ARCH" = "x86_64" ] || [ "$ARCH" = "amd64" ]; then
-        BIN_URL="https://github.com/GoogleContainerTools/kaniko/releases/download/$LATEST_VERSION/kaniko-executor"
-      elif [ "$ARCH" = "aarch64" ] || [ "$ARCH" = "arm64" ]; then
-        BIN_URL="https://github.com/GoogleContainerTools/kaniko/releases/download/$LATEST_VERSION/kaniko-executor-arm64"
-      else
-        echo "Unsupported architecture: $ARCH" && exit 1
-      fi
-
-      # 使用 -L 參數確保能跟隨重定向，並檢查下載是否成功
-      curl -sSL --fail -o /kaniko/executor "$BIN_URL"
-      if [ $? -ne 0 ]; then
-        echo "Failed to download Kaniko executor." && exit 1
-      fi
-
-      chmod +x /kaniko/executor
     - mkdir -p /kaniko/.docker
     - |
-      cat > /kaniko/.docker/config.json <<'EOF'
+      cat > /kaniko/.docker/config.json <<EOF
       {"auths": {"$CI_REGISTRY": {"username": "$CI_REGISTRY_USER", "password": "$CI_REGISTRY_PASSWORD"}}}
       EOF
     - /kaniko/executor \
