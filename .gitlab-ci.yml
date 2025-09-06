@@ -2,25 +2,21 @@ stages:
   - build
 
 variables:
-  # 其他變數保持不變
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
   ASPNETCORE_ENVIRONMENT: "Development"
 
 build:
   stage: build
-  # 直接使用 Kaniko 鏡像，並指定版本號以確保穩定性
   image:
     name: gcr.io/kaniko-project/executor:v1.24.0-debug
     entrypoint: [""]
   script:
-    # 寫入認證資訊到 Kaniko 預設的 config.json 位置
-    - echo "{\"auths\": {\"$CI_REGISTRY\": {\"username\": \"$CI_REGISTRY_USER\", \"password\": \"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-      
-    # 執行 Kaniko 進行建置與推送到 GitLab Container Registry
-    - /kaniko/executor \
-      --context "$CI_PROJECT_DIR" \
-      --dockerfile "$CI_PROJECT_DIR/Dockerfile" \
-      --destination "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" \
-      --destination "$CI_REGISTRY_IMAGE:latest" \
-      --cache=true \
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor
+      --context "$CI_PROJECT_DIR"
+      --dockerfile "$CI_PROJECT_DIR/Dockerfile"
+      --destination "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+      --destination "$CI_REGISTRY_IMAGE:latest"
+      --cache=true
       --skip-tls-verify
