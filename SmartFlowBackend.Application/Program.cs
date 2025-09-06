@@ -48,6 +48,7 @@ builder.Services.AddSwaggerGen(c =>
         Description = "SmartFlowBackend API"
     });
 
+    c.SupportNonNullableReferenceTypes();
     c.ExampleFilters();
 });
 builder.Services.AddSwaggerExamplesFromAssemblyOf<Program>();
