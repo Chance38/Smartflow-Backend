@@ -9,7 +9,9 @@ variables:
 build:
   stage: build
   # 直接使用 Kaniko 鏡像，並指定版本號以確保穩定性
-  image: gcr.io/kaniko-project/executor:v1.24.0-debug
+  image:
+    name: gcr.io/kaniko-project/executor:v1.24.0-debug
+    entrypoint: [""]
   script:
     # 寫入認證資訊到 Kaniko 預設的 config.json 位置
     - echo "{\"auths\": {\"$CI_REGISTRY\": {\"username\": \"$CI_REGISTRY_USER\", \"password\": \"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
