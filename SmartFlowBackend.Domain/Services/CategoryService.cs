@@ -15,13 +15,13 @@ namespace SmartFlowBackend.Domain.Services
 
         public async Task AddCategoryAsync(AddCategoryRequest request, Guid userId)
         {
-            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.UserId == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");
             }
 
-            var existingCategory = await _unitOfWork.Category.FindAsync(c => c.UserId == userId && c.Name == request.Name);
+            var existingCategory = await _unitOfWork.Category.FindAsync(c => c.UserId == userId && c.CategoryName == request.Name && c.Type == request.Type);
             if (existingCategory != null)
             {
                 throw new ArgumentException("Category with the same name already exists.");
@@ -29,8 +29,8 @@ namespace SmartFlowBackend.Domain.Services
 
             var category = new Domain.Entities.Category
             {
-                Id = Guid.NewGuid(),
-                Name = request.Name,
+                CategoryId = Guid.NewGuid(),
+                CategoryName = request.Name,
                 Type = request.Type,
                 UserId = userId
             };
@@ -41,7 +41,7 @@ namespace SmartFlowBackend.Domain.Services
 
         public async Task<List<Category>> GetAllCategoriesByUserIdAsync(Guid userId)
         {
-            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.UserId == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");
@@ -52,45 +52,44 @@ namespace SmartFlowBackend.Domain.Services
             return categories
                 .Select(c => new Category
                 {
-                    Name = c.Name,
+                    Name = c.CategoryName,
                     Type = c.Type
                 }).ToList();
         }
 
         public async Task DeleteCategoryAsync(Guid userId, string categoryName)
         {
-            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.UserId == userId);
             if (user == null)
             {
                 return;
             }
 
-            var category = await _unitOfWork.Category.FindAsync(c => c.UserId == userId && c.Name == categoryName);
+            var category = await _unitOfWork.Category.FindAsync(c => c.UserId == userId && c.CategoryName == categoryName);
             if (category == null)
             {
                 return;
             }
 
-            await _unitOfWork.Category.DeleteAsync(category.Id);
+            await _unitOfWork.Category.DeleteAsync(category.CategoryId);
             await _unitOfWork.SaveAsync();
         }
 
         public async Task UpdateCategoryAsync(UpdateCategoryRequest req, Guid userId)
         {
-            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.UserId == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");
             }
 
-            var category = await _unitOfWork.Category.FindAsync(c => c.UserId == userId && c.Name == req.OldName);
+            var category = await _unitOfWork.Category.FindAsync(c => c.UserId == userId && c.CategoryName == req.OldName);
             if (category == null)
             {
                 throw new ArgumentException("Category not found");
             }
 
-            category.Name = req.NewName;
-            category.Type = req.Type;
+            category.CategoryName = req.NewName;
 
             await _unitOfWork.Category.UpdateAsync(category);
             await _unitOfWork.SaveAsync();

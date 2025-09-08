@@ -1,0 +1,7 @@
+**/.DS_Store
+**/.vs
+**/.vscode
+**/bin
+**/obj
+**/Properties
+!/SmartFlowBackend/SmartFlowBackend.Application/Properties

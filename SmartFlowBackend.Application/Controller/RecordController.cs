@@ -1,9 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using SmartFlowBackend.Domain.Interfaces;
 using Middleware;
+using SmartFlowBackend.Application.SwaggerSetting;
 using SmartFlowBackend.Domain.Contracts;
-using SmartFlowBackend.Domain;
-using Swashbuckle.AspNetCore.Filters;
+using SmartFlowBackend.Domain.Interfaces;
 
 namespace SmartFlowBackend.Application.Controller
 {

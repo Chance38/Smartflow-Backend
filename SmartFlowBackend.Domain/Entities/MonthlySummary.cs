@@ -6,7 +6,7 @@ namespace SmartFlowBackend.Domain.Entities;
 public class MonthlySummary
 {
     [Key]
-    public Guid Id { get; set; }
+    public Guid MonthlySummaryId { get; set; }
 
     public int Year { get; set; }
     public int Month { get; set; }

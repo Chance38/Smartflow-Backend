@@ -3,11 +3,10 @@ using Serilog.Events;
 using Swashbuckle.AspNetCore.Filters;
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
+using SmartFlowBackend.Application.SwaggerSetting;
 using SmartFlowBackend.Infrastructure.Persistence;
 using SmartFlowBackend.Domain.Interfaces;
 using SmartFlowBackend.Domain.Services;
-using SmartFlowBackend.Application;
-using SmartFlowBackend.Domain;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +29,7 @@ builder.Services.AddScoped<IRecordService, RecordService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IBalanceService, BalanceService>();
+builder.Services.AddScoped<ISummaryService, SummaryService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -47,6 +47,7 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1",
         Description = "SmartFlowBackend API"
     });
+    c.DocumentFilter<ServerDocumentFilter>();
 
     c.SupportNonNullableReferenceTypes();
     c.ExampleFilters();
@@ -81,10 +82,10 @@ using (var scope = app.Services.CreateScope())
         {
             var user = new SmartFlowBackend.Domain.Entities.User
             {
-                Id = TestUser.Id,
+                UserId = TestUser.Id,
                 Username = TestUser.Username,
-                Account = TestUser.Account,
-                Password = TestUser.Password,
+                UserAccount = TestUser.Account,
+                UserPassword = TestUser.Password,
                 Balance = 10000.0f
             };
             uow.User.AddAsync(user).GetAwaiter().GetResult();

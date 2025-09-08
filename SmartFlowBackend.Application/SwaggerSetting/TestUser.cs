@@ -1,4 +1,4 @@
-namespace SmartFlowBackend.Domain;
+namespace SmartFlowBackend.Application.SwaggerSetting;
 
 public static class TestUser
 {

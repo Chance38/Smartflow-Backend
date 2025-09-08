@@ -19,7 +19,7 @@ public class CategoryRepository : Repository<Category>, ICategoryRepository
 
     public async Task<Category> GetCategoryByNameAsync(string name)
     {
-        var category = await _context.Category.FirstOrDefaultAsync(c => c.Name == name);
+        var category = await _context.Category.FirstOrDefaultAsync(c => c.CategoryName == name);
         if (category == null)
         {
             throw new InvalidOperationException($"Category with name '{name}' not found.");

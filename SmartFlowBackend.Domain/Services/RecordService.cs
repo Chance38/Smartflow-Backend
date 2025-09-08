@@ -2,115 +2,77 @@ using Microsoft.EntityFrameworkCore;
 using SmartFlowBackend.Domain.Contracts;
 using SmartFlowBackend.Domain.Entities;
 using SmartFlowBackend.Domain.Interfaces;
+using System.Linq;
 
 namespace SmartFlowBackend.Domain.Services
 {
     public class RecordService : IRecordService
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ISummaryService _summaryService;
+        private readonly IBalanceService _balanceService;
 
-        public RecordService(IUnitOfWork unitOfWork)
+        public RecordService(
+            IUnitOfWork unitOfWork,
+            ISummaryService summaryService,
+            IBalanceService balanceService)
         {
             _unitOfWork = unitOfWork;
+            _summaryService = summaryService;
+            _balanceService = balanceService;
         }
 
         public async Task AddRecordAsync(AddRecordRequest request, Guid userId)
         {
-            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.UserId == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");
             }
 
+            var category = await _unitOfWork.Category.FindAsync(c => c.CategoryName == request.Category && c.Type == request.Type);
+            if (category == null)
+            {
+                throw new ArgumentException("Category not found");
+            }
+
             var record = new Record
             {
-                Id = Guid.NewGuid(),
+                RecordId = Guid.NewGuid(),
+                CategoryId = category.CategoryId,
+                CategoryName = request.Category,
+                Type = category.Type,
                 Amount = request.Amount,
                 Date = request.Date,
                 UserId = userId
             };
 
-            var category = await _unitOfWork.Category.FindAsync(c => c.Name == request.Category);
             if (request.Tag != null && request.Tag.Any())
             {
-                var tags = await _unitOfWork.Tag.FindAllAsync(t => request.Tag.Contains(t.Name), include: q => q.Include(t => t.Category));
-                if (tags == null || !tags.Any())
+                var tags = await _unitOfWork.Tag.FindAllAsync(t => request.Tag.Contains(t.TagName) && t.UserId == userId);
+                if (tags == null || tags.Count() != request.Tag.Count)
                 {
-                    throw new ArgumentException("Tag not found");
+                    throw new ArgumentException("One or more tags not found");
                 }
 
                 foreach (var tag in tags)
                 {
                     record.Tags.Add(tag);
                 }
-                record.TagNames.AddRange(tags.Select(t => t.Name));
-                record.CategoryId = tags.First().CategoryId;
-                record.CategoryName = tags.First().Category.Name;
-                record.Type = tags.First().Category.Type;
-            }
-            else
-            {
-                if (category == null)
-                {
-                    throw new ArgumentException("Category not found");
-                }
 
-                record.CategoryId = category.Id;
-                record.CategoryName = category.Name;
-                record.Type = category.Type;
+                record.TagNames.AddRange(tags.Select(t => t.TagName));
             }
             await _unitOfWork.Record.AddAsync(record);
 
-            var summary = await _unitOfWork.MonthlySummary.FindAsync(s => s.UserId == userId && s.Year == request.Date.Year && s.Month == request.Date.Month);
-            if (record.Type == CategoryType.Expense)
-            {
-                user.Balance -= request.Amount;
-                if (summary == null)
-                {
-                    summary = new MonthlySummary
-                    {
-                        Id = Guid.NewGuid(),
-                        UserId = userId,
-                        Year = request.Date.Year,
-                        Month = request.Date.Month,
-                        Expense = request.Amount,
-                        Income = 0
-                    };
-                    await _unitOfWork.MonthlySummary.AddAsync(summary);
-                }
-                else
-                {
-                    summary.Expense += request.Amount;
-                }
-            }
-            else
-            {
-                user.Balance += request.Amount;
-                if (summary == null)
-                {
-                    summary = new MonthlySummary
-                    {
-                        Id = Guid.NewGuid(),
-                        UserId = userId,
-                        Year = request.Date.Year,
-                        Month = request.Date.Month,
-                        Income = request.Amount,
-                        Expense = 0
-                    };
-                    await _unitOfWork.MonthlySummary.AddAsync(summary);
-                }
-                else
-                {
-                    summary.Income += request.Amount;
-                }
-            }
+            await _summaryService.UpdateMonthlySummaryAsync(user, category.Type, request.Date.Year, request.Date.Month, request.Amount);
+            await _balanceService.UpdateBalanceAsync(user, category.Type, request.Amount);
 
             await _unitOfWork.SaveAsync();
         }
 
         public async Task<List<Expense>> GetThisMonthExpensesAsync(Guid userId)
         {
-            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.UserId == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");
@@ -132,7 +94,7 @@ namespace SmartFlowBackend.Domain.Services
 
         public async Task<List<RecordPerMonth>> GetThisMonthRecordsAsync(Guid userId)
         {
-            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.UserId == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");
@@ -158,7 +120,7 @@ namespace SmartFlowBackend.Domain.Services
 
         public async Task<List<RecordPerMonth>> GetLastSixMonthRecordsAsync(Guid userId)
         {
-            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.UserId == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");
@@ -201,7 +163,7 @@ namespace SmartFlowBackend.Domain.Services
 
         public async Task<List<RecordPerMonth>> GetAllMonthRecordsAsync(Guid userId)
         {
-            var user = await _unitOfWork.User.FindAsync(u => u.Id == userId);
+            var user = await _unitOfWork.User.FindAsync(u => u.UserId == userId);
             if (user == null)
             {
                 throw new ArgumentException("User not found");

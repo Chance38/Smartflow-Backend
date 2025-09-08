@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
-using SmartFlowBackend.Domain.Interfaces;
 using Middleware;
+using SmartFlowBackend.Application.SwaggerSetting;
 using SmartFlowBackend.Domain.Contracts;
-using SmartFlowBackend.Domain;
+using SmartFlowBackend.Domain.Interfaces;
 
 namespace SmartFlowBackend.Application.Controller
 {
@@ -83,7 +83,7 @@ namespace SmartFlowBackend.Application.Controller
             });
         }
 
-        [HttpDelete("tag/{tagName}")]
+        [HttpDelete("tag")]
         [ProducesResponseType(typeof(OkSituation), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> DeleteTag([FromBody] DeleteTagRequest req)
@@ -91,9 +91,9 @@ namespace SmartFlowBackend.Application.Controller
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
 
             var userId = TestUser.Id;
-            _logger.LogInformation("Received request to delete tag '{TagName}' for user: {UserId}", req.Name, userId);
+            _logger.LogInformation("Received request to delete tag '{TagName}' for user: {UserId}", req.TagName, userId);
 
-            await _tagService.DeleteTagAsync(userId, req.Name);
+            await _tagService.DeleteTagAsync(userId, req.TagName);
 
             return Ok(new OkSituation
             {

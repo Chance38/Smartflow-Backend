@@ -6,17 +6,12 @@ namespace SmartFlowBackend.Domain.Entities;
 public class Tag
 {
     [Key]
-    public Guid Id { get; set; }
+    public Guid TagId { get; set; }
+    public required string TagName { get; set; }
 
-    public required string Name { get; set; }
-
-    // Foreign Keys
     [ForeignKey("User")]
     public Guid UserId { get; set; }
-    [ForeignKey("Category")]
-    public Guid CategoryId { get; set; }
-
     public User User { get; set; } = null!;
-    public Category Category { get; set; } = null!;
+
     public ICollection<Record> Records { get; set; } = new List<Record>();
 }

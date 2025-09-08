@@ -19,7 +19,7 @@ public class TagRepository : Repository<Tag>, ITagRepository
 
     public async Task<Tag> GetTagByNameAsync(string name)
     {
-        var tag = await _context.Tag.FirstOrDefaultAsync(t => t.Name == name);
+        var tag = await _context.Tag.FirstOrDefaultAsync(t => t.TagName == name);
         if (tag == null)
             throw new InvalidOperationException($"Tag with name '{name}' not found.");
         return tag;

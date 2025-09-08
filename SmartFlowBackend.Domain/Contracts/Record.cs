@@ -7,10 +7,12 @@ namespace SmartFlowBackend.Domain.Contracts;
 public class AddRecordRequest
 {
     [JsonPropertyName("category")]
-    public string? Category { get; set; }
+    [Required(ErrorMessage = "Category is required")]
+    public required string Category { get; set; }
 
     [JsonPropertyName("type")]
-    public CategoryType? Type { get; set; }
+    [Required(ErrorMessage = "Type is required")]
+    public required CategoryType Type { get; set; }
 
     [JsonPropertyName("tag")]
     public List<string>? Tag { get; set; }

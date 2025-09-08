@@ -3,24 +3,17 @@ using System.Text.Json.Serialization;
 
 namespace SmartFlowBackend.Domain.Contracts;
 
-public class Tag
-{
-    [JsonPropertyName("name")]
-    public required string Name { get; set; }
-
-    [JsonPropertyName("category")]
-    public required string Category { get; set; }
-}
-
 public class AddTagRequest
 {
-    [JsonPropertyName("name")]
-    [Required(ErrorMessage = "Name is required")]
-    public required string Name { get; set; }
+    [JsonPropertyName("tagName")]
+    [Required(ErrorMessage = "Tag name is required")]
+    public required string TagName { get; set; }
+}
 
-    [JsonPropertyName("category")]
-    [Required(ErrorMessage = "Category is required")]
-    public required string Category { get; set; }
+public class Tag
+{
+    [JsonPropertyName("tagName")]
+    public required string TagName { get; set; }
 }
 
 public class GetAllTagsResponse
@@ -34,22 +27,18 @@ public class GetAllTagsResponse
 
 public class DeleteTagRequest
 {
-    [JsonPropertyName("name")]
-    [Required(ErrorMessage = "Name is required")]
-    public required string Name { get; set; }
+    [JsonPropertyName("tagName")]
+    [Required(ErrorMessage = "Tag name is required")]
+    public required string TagName { get; set; }
 }
 
 public class UpdateTagRequest
 {
-    [JsonPropertyName("oldName")]
+    [JsonPropertyName("oldTagName")]
     [Required(ErrorMessage = "OldName is required")]
     public required string OldName { get; set; }
 
-    [JsonPropertyName("newName")]
+    [JsonPropertyName("newTagName")]
     [Required(ErrorMessage = "NewName is required")]
     public required string NewName { get; set; }
-
-    [JsonPropertyName("category")]
-    [Required(ErrorMessage = "Category is required")]
-    public required string CategoryName { get; set; }
 }
