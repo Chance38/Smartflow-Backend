@@ -18,14 +18,8 @@ test:
     - dotnet restore --locked-mode
     - dotnet test --no-restore --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage"
 
-    - |
-      if ls SmartFlowBackend.Test/TestResults/**/coverage.cobertura.xml >/dev/null 2>&1; then
-        reportgenerator -reports:"SmartFlowBackend.Test/TestResults/**/coverage.cobertura.xml" -targetdir:coveragereport -reporttypes:TextSummary
-        echo "Coverage summary:"
-        cat coveragereport/Summary.txt || true
-      else
-        echo "No coverage files found, skipping report generation"
-      fi
+    - reportgenerator -reports:"SmartFlowBackend.Test/TestResults/**/coverage.cobertura.xml" -targetdir:coveragereport -reporttypes:TextSummary
+    - cat coveragereport/Summary.txt || true
   artifacts:
     paths:
       - coveragereport/
