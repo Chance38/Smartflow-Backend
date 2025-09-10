@@ -34,10 +34,7 @@ test:
   cache:
     key:
       files:
-        - SmartFlowBackend.Test/SmartFlowBackend.Test.csproj
-        - SmartFlowBackend.Application/SmartFlowBackend.Application.csproj
-        - SmartFlowBackend.Domain/SmartFlowBackend.Domain.csproj
-        - SmartFlowBackend.Infrastructure/SmartFlowBackend.Infrastructure.csproj
+        - SmartFlowBackend.sln
     paths:
       - ~/.nuget/packages
 
