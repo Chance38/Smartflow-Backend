@@ -5,6 +5,7 @@ COPY ["SmartFlowBackend.sln", "."]
 COPY "SmartFlowBackend.Application/SmartFlowBackend.Application.csproj" "SmartFlowBackend.Application/"
 COPY "SmartFlowBackend.Domain/SmartFlowBackend.Domain.csproj" "SmartFlowBackend.Domain/"
 COPY "SmartFlowBackend.Infrastructure/SmartFlowBackend.Infrastructure.csproj" "SmartFlowBackend.Infrastructure/"
+COPY "SmartFlowBackend.Test/SmartFlowBackend.Test.csproj" "SmartFlowBackend.Test/"
 RUN dotnet restore "SmartFlowBackend.sln"
 COPY . .
 WORKDIR "/src/SmartFlowBackend.Application"
