@@ -5,8 +5,6 @@ stages:
 variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
   ASPNETCORE_ENVIRONMENT: "Development"
-  # DOCKER_HOST 告訴 Docker CLI 如何連接到 dind 服務
-  # DOCKER_TLS_CERTDIR 是禁用 TLS 的一種方式
   DOCKER_HOST: tcp://docker:2375
   DOCKER_TLS_CERTDIR: ""
 
@@ -14,13 +12,18 @@ test:
   stage: test
   image: mcr.microsoft.com/dotnet/sdk:8.0
   script:
-    - dotnet tool install -g dotnet-reportgenerator-globaltool
-    - export PATH="$PATH:$CI_PROJECT_DIR/.dotnet/.dotnet/tools"
+    - dotnet tool install --tool-path .dotnet/tools dotnet-reportgenerator-globaltool
+    - export PATH="$PATH:$CI_PROJECT_DIR/.dotnet/tools"
 
     - dotnet test --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage"
 
-    - reportgenerator -reports:"TestResults/**/coverage.cobertura.xml" -targetdir:coveragereport -reporttypes:TextSummary
-    - cat coveragereport/Summary.txt
+    - |
+      if ls TestResults/**/coverage.cobertura.xml >/dev/null 2>&1; then
+        reportgenerator -reports:"TestResults/**/coverage.cobertura.xml" -targetdir:coveragereport -reporttypes:TextSummary
+        cat coveragereport/Summary.txt || true
+      else
+        echo "No coverage files found, skipping report generation"
+      fi
   artifacts:
     paths:
       - coveragereport/
