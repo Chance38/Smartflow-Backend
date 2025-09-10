@@ -15,11 +15,13 @@ test:
     - dotnet tool install --tool-path .dotnet/tools dotnet-reportgenerator-globaltool
     - export PATH="$PATH:$CI_PROJECT_DIR/.dotnet/tools"
 
-    - dotnet test --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage"
+    - dotnet restore --locked-mode
+    - dotnet test --no-restore --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage"
 
     - |
-      if ls TestResults/**/coverage.cobertura.xml >/dev/null 2>&1; then
-        reportgenerator -reports:"TestResults/**/coverage.cobertura.xml" -targetdir:coveragereport -reporttypes:TextSummary
+      if ls SmartFlowBackend.Test/TestResults/**/coverage.cobertura.xml >/dev/null 2>&1; then
+        reportgenerator -reports:"SmartFlowBackend.Test/TestResults/**/coverage.cobertura.xml" -targetdir:coveragereport -reporttypes:TextSummary
+        echo "Coverage summary:"
         cat coveragereport/Summary.txt || true
       else
         echo "No coverage files found, skipping report generation"
@@ -27,10 +29,15 @@ test:
   artifacts:
     paths:
       - coveragereport/
-      - TestResults/
+      - SmartFlowBackend.Test/TestResults/
     expire_in: 1 week
   cache:
-    key: nuget
+    key:
+      files:
+        - SmartFlowBackend.Test/SmartFlowBackend.Test.csproj
+        - SmartFlowBackend.Application/SmartFlowBackend.Application.csproj
+        - SmartFlowBackend.Domain/SmartFlowBackend.Domain.csproj
+        - SmartFlowBackend.Infrastructure/SmartFlowBackend.Infrastructure.csproj
     paths:
       - ~/.nuget/packages
 
