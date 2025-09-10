@@ -19,7 +19,7 @@ namespace SmartFlowBackend.Application.Controller
             _logger = logger;
         }
 
-        [HttpPost("balance")]
+        [HttpGet("balance")]
         [ProducesResponseType(typeof(GetBalanceResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]

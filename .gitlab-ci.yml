@@ -1,4 +1,5 @@
 stages:
+  - test
   - build
 
 variables:
@@ -9,9 +10,35 @@ variables:
   DOCKER_HOST: tcp://docker:2375
   DOCKER_TLS_CERTDIR: ""
 
+test:
+  stage: test
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  script:
+    - dotnet tool install --tool-path .dotnet/tools dotnet-reportgenerator-globaltool
+    - export PATH="$PATH:$CI_PROJECT_DIR/.dotnet/tools"
+
+    - dotnet test --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage"
+
+    - reportgenerator -reports:"TestResults/**/coverage.cobertura.xml" -targetdir:coveragereport -reporttypes:TextSummary
+    - cat coveragereport/Summary.txt
+  artifacts:
+    paths:
+      - coveragereport/
+      - TestResults/
+    expire_in: 1 week
+  cache:
+    key: nuget
+    paths:
+      - ~/.nuget/packages
+
 build:
   stage: build
+  needs: [test]
   image: docker:latest
+  services:
+    - docker:dind
+  tags:
+    - docker
   script:
     - |
       export IMAGE_TAG=$(date +%Y%m%d)-${CI_COMMIT_SHORT_SHA}-${CI_COMMIT_REF_NAME}
