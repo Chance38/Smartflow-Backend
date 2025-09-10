@@ -41,7 +41,7 @@ build:
   services:
     - docker:dind
   tags:
-    - docker
+    - smartech-dind-runner
   script:
     - |
       export IMAGE_TAG=$(date +%Y%m%d)-${CI_COMMIT_SHORT_SHA}-${CI_COMMIT_REF_NAME}
