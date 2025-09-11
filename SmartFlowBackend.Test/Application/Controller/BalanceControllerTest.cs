@@ -1,5 +1,4 @@
 using System.Net;
-using System.Text;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,9 +9,8 @@ using SmartFlowBackend.Test.Helper;
 using SmartFlowBackend.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using SmartFlowBackend.Domain.Contracts;
-using Moq;
 
-namespace SmartFlowBackend.Test.Application.Controller;
+namespace SmartFlowBackend.Test.Application.Controller.Balance;
 
 public class BalanceControllerTest
 {
@@ -41,7 +39,7 @@ public class BalanceControllerTest
     }
 
     [SetUp]
-    public async Task SetUp()
+    public void SetUp()
     {
         _factory = new CustomWebApplicationFactory();
         _client = _factory.CreateClient();
@@ -55,7 +53,7 @@ public class BalanceControllerTest
     }
 
     [Test]
-    public async Task GetBalance_Should_ReturnsOk()
+    public async Task GetBalance_Should_Return_Ok()
     {
         var response = await _client.GetAsync("smartflow/v1/balance");
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
