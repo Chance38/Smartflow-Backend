@@ -81,13 +81,13 @@ namespace SmartFlowBackend.Domain.Services
                 throw new ArgumentException("User not found");
             }
 
-            var tag = await _unitOfWork.Tag.FindAsync(t => t.UserId == userId && t.TagName == request.OldName);
+            var tag = await _unitOfWork.Tag.FindAsync(t => t.UserId == userId && t.TagName == request.OldTagName);
             if (tag == null)
             {
                 throw new ArgumentException("Tag not found");
             }
 
-            tag.TagName = request.NewName;
+            tag.TagName = request.NewTagName;
 
             await _unitOfWork.Tag.UpdateAsync(tag);
             await _unitOfWork.SaveAsync();

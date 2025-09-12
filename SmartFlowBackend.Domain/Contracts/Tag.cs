@@ -35,10 +35,10 @@ public class DeleteTagRequest
 public class UpdateTagRequest
 {
     [JsonPropertyName("oldTagName")]
-    [Required(ErrorMessage = "OldName is required")]
-    public required string OldName { get; set; }
+    [Required(ErrorMessage = "Old Tag Name is required")]
+    public required string OldTagName { get; set; }
 
     [JsonPropertyName("newTagName")]
-    [Required(ErrorMessage = "NewName is required")]
-    public required string NewName { get; set; }
+    [Required(ErrorMessage = "New Tag Name is required")]
+    public required string NewTagName { get; set; }
 }
