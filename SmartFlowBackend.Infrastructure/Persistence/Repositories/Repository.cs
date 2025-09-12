@@ -19,11 +19,6 @@ namespace SmartFlowBackend.Infrastructure.Persistence.Repositories
             return await _context.Set<T>().FindAsync(id);
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync()
-        {
-            return await _context.Set<T>().ToListAsync();
-        }
-
         public async Task<T?> FindAsync(Expression<Func<T, bool>> expression, Func<IQueryable<T>, IIncludableQueryable<T, object>>? include = null)
         {
             IQueryable<T> query = _context.Set<T>();

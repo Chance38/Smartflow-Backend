@@ -79,7 +79,7 @@ using (var scope = app.Services.CreateScope())
         dbContext.Database.Migrate();
 
         var uow = services.GetRequiredService<SmartFlowBackend.Domain.Interfaces.IUnitOfWork>();
-        var existing = uow.User.GetUserByIdAsync(TestUser.Id).GetAwaiter().GetResult();
+        var existing = uow.User.FindAsync(u => u.UserId == TestUser.Id).GetAwaiter().GetResult();
         if (existing == null)
         {
             var user = new SmartFlowBackend.Domain.Entities.User
