@@ -9,7 +9,7 @@ public class Record
 {
     [Key]
     public Guid RecordId { get; set; }
-    public CategoryType Type { get; set; }
+    public CategoryType CategoryType { get; set; }
     public string CategoryName { get; set; } = string.Empty;
     public List<string> TagNames { get; set; } = new List<string>();
     public float Amount { get; set; }

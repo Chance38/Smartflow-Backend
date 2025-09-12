@@ -6,22 +6,22 @@ namespace SmartFlowBackend.Domain.Contracts;
 
 public class Category
 {
-    [JsonPropertyName("name")]
-    public required string Name { get; set; }
+    [JsonPropertyName("categoryName")]
+    public required string CategoryName { get; set; }
 
-    [JsonPropertyName("type")]
-    public required CategoryType Type { get; set; }
+    [JsonPropertyName("categoryType")]
+    public required CategoryType CategoryType { get; set; }
 }
 
 public class AddCategoryRequest
 {
-    [JsonPropertyName("name")]
+    [JsonPropertyName("categoryName")]
     [Required(ErrorMessage = "Category Name is required")]
-    public required string Name { get; set; }
+    public required string CategoryName { get; set; }
 
-    [JsonPropertyName("type")]
+    [JsonPropertyName("categoryType")]
     [Required(ErrorMessage = "Category Type is required")]
-    public required CategoryType Type { get; set; }
+    public required CategoryType CategoryType { get; set; }
 }
 
 public class GetAllCategoriesResponse
@@ -35,30 +35,30 @@ public class GetAllCategoriesResponse
 
 public class DeleteCategoryRequest
 {
-    [JsonPropertyName("name")]
+    [JsonPropertyName("categoryName")]
     [Required(ErrorMessage = "Category Name is required")]
-    public required string Name { get; set; }
+    public required string CategoryName { get; set; }
 
-    [JsonPropertyName("type")]
+    [JsonPropertyName("categoryType")]
     [Required(ErrorMessage = "Category Type is required")]
-    public required CategoryType Type { get; set; }
+    public required CategoryType CategoryType { get; set; }
 }
 
 public class UpdateCategoryRequest
 {
-    [JsonPropertyName("oldName")]
+    [JsonPropertyName("oldCategoryName")]
     [Required(ErrorMessage = "Old Category Name is required")]
-    public required string OldName { get; set; }
+    public required string OldCategoryName { get; set; }
 
-    [JsonPropertyName("newName")]
+    [JsonPropertyName("newCategoryName")]
     [Required(ErrorMessage = "New Category Name is required")]
-    public required string NewName { get; set; }
+    public required string NewCategoryName { get; set; }
 
-    [JsonPropertyName("oldType")]
+    [JsonPropertyName("oldCategoryType")]
     [Required(ErrorMessage = "Category Type is required")]
-    public required CategoryType OldType { get; set; }
+    public required CategoryType OldCategoryType { get; set; }
 
-    [JsonPropertyName("newType")]
+    [JsonPropertyName("newCategoryType")]
     [Required(ErrorMessage = "Category Type is required")]
-    public required CategoryType NewType { get; set; }
+    public required CategoryType NewCategoryType { get; set; }
 }

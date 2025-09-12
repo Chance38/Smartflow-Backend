@@ -37,8 +37,8 @@ public class GetThisMonthExpensesResponse
 
 public class Expense
 {
-    [JsonPropertyName("type")]
-    public required string Type { get; set; }
+    [JsonPropertyName("category")]
+    public required string Category { get; set; }
 
     [JsonPropertyName("amount")]
     public required float Amount { get; set; }

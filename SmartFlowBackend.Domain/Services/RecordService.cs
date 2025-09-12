@@ -30,7 +30,7 @@ namespace SmartFlowBackend.Domain.Services
                 throw new ArgumentException("User not found");
             }
 
-            var category = await _unitOfWork.Category.FindAsync(c => c.CategoryName == request.Category && c.Type == request.Type);
+            var category = await _unitOfWork.Category.FindAsync(c => c.CategoryName == request.Category && c.CategoryType == request.Type);
             if (category == null)
             {
                 throw new ArgumentException("Category not found");
@@ -41,7 +41,7 @@ namespace SmartFlowBackend.Domain.Services
                 RecordId = Guid.NewGuid(),
                 CategoryId = category.CategoryId,
                 CategoryName = request.Category,
-                Type = category.Type,
+                CategoryType = category.CategoryType,
                 Amount = request.Amount,
                 Date = request.Date,
                 UserId = userId
@@ -64,8 +64,8 @@ namespace SmartFlowBackend.Domain.Services
             }
             await _unitOfWork.Record.AddAsync(record);
 
-            await _summaryService.UpdateMonthlySummaryAsync(user, category.Type, request.Date.Year, request.Date.Month, request.Amount);
-            await _balanceService.UpdateBalanceAsync(user, category.Type, request.Amount);
+            await _summaryService.UpdateMonthlySummaryAsync(user, category.CategoryType, request.Date.Year, request.Date.Month, request.Amount);
+            await _balanceService.UpdateBalanceAsync(user, category.CategoryType, request.Amount);
 
             await _unitOfWork.SaveAsync();
         }
@@ -81,11 +81,11 @@ namespace SmartFlowBackend.Domain.Services
             var records = await _unitOfWork.Record.FindAllAsync(r => r.UserId == userId && r.Date.Year == DateTime.Now.Year && r.Date.Month == DateTime.Now.Month);
 
             var expenses = records
-                .Where(r => r.Type == CategoryType.Expense)
+                .Where(r => r.CategoryType == CategoryType.Expense)
                 .GroupBy(r => r.CategoryName)
                 .Select(g => new Expense
                 {
-                    Type = g.Key,
+                    Category = g.Key,
                     Amount = g.Sum(r => r.Amount)
                 }).ToList();
 

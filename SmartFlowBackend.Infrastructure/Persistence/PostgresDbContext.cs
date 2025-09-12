@@ -44,11 +44,11 @@ public class PostgresDbContext : DbContext
             .WithMany(t => t.Records);
 
         modelBuilder.Entity<Record>()
-            .Property(r => r.Type)
+            .Property(r => r.CategoryType)
             .HasConversion<string>();
 
         modelBuilder.Entity<Category>()
-            .Property(c => c.Type)
+            .Property(c => c.CategoryType)
             .HasConversion<string>();
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(PostgresDbContext).Assembly);

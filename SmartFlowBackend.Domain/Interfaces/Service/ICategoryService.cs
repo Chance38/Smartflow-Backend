@@ -8,7 +8,7 @@ namespace SmartFlowBackend.Domain.Interfaces
 
         Task<List<Category>> GetAllCategoriesByUserIdAsync(Guid userId);
 
-        Task DeleteCategoryAsync(Guid userId, string categoryName);
+        Task DeleteCategoryAsync(DeleteCategoryRequest request, Guid userId);
 
         Task UpdateCategoryAsync(UpdateCategoryRequest request, Guid userId);
     }

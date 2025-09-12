@@ -10,7 +10,7 @@ public class Category
     public Guid CategoryId { get; set; }
 
     public required string CategoryName { get; set; }
-    public CategoryType Type { get; set; }
+    public CategoryType CategoryType { get; set; }
 
     [ForeignKey("User")]
     public Guid UserId { get; set; }
