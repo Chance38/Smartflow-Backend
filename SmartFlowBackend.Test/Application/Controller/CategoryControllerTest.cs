@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text;
+using System.Text.Json;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -80,9 +81,7 @@ public class CategoryControllerTest
         ));
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-
-        var content = await response.Content.ReadAsStringAsync();
-        Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/json"));
+        Assert.That(response.Content.Headers.ContentType.MediaType, Is.EqualTo("application/json"));
 
         var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
@@ -109,8 +108,6 @@ public class CategoryControllerTest
         ));
 
         Assert.That(firstResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-
-        var content = await firstResponse.Content.ReadAsStringAsync();
         Assert.That(firstResponse.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/json"));
 
         var scope = _factory.Services.CreateScope();
@@ -134,8 +131,6 @@ public class CategoryControllerTest
         ));
 
         Assert.That(secondResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-
-        var content2 = await secondResponse.Content.ReadAsStringAsync();
         Assert.That(secondResponse.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/json"));
 
         var scope2 = _factory.Services.CreateScope();
@@ -148,7 +143,7 @@ public class CategoryControllerTest
     [Test]
     public async Task AddCategory_When_The_Same_CategoryName_And_The_Same_Type_Should_Return_BadRequest()
     {
-        var AddCategoryFirstReq =
+        var AddCategoryReq =
         """
         {
             "categoryName": "Test Category",
@@ -157,41 +152,28 @@ public class CategoryControllerTest
         """;
 
         var firstResponse = await _client.PostAsync("smartflow/v1/category", new StringContent(
-            AddCategoryFirstReq,
+            AddCategoryReq,
             Encoding.UTF8,
             "application/json"
         ));
 
         Assert.That(firstResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-
-        var content = await firstResponse.Content.ReadAsStringAsync();
-        Assert.That(firstResponse.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/json"));
+        Assert.That(firstResponse.Content.Headers.ContentType.MediaType, Is.EqualTo("application/json"));
 
         var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
 
-        var category = await db.Category.FirstOrDefaultAsync(c => c.CategoryName == "Test Category");
+        var category = await db.Category.FirstOrDefaultAsync(c => c.CategoryName == "Test Category" && c.CategoryType == Domain.Entities.CategoryType.Expense);
         Assert.IsNotNull(category, "Category should be persisted to DB");
-        Assert.That(category.CategoryType, Is.EqualTo(Domain.Entities.CategoryType.Expense));
-
-        var AddCategorySecondReq =
-        """
-        {
-            "categoryName": "Test Category",
-            "categoryType": "expense"
-        }
-        """;
 
         var secondResponse = await _client.PostAsync("smartflow/v1/category", new StringContent(
-            AddCategorySecondReq,
+            AddCategoryReq,
             Encoding.UTF8,
             "application/json"
         ));
 
         Assert.That(secondResponse.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
-
-        var content2 = await secondResponse.Content.ReadAsStringAsync();
-        Assert.That(secondResponse.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/json"));
+        Assert.That(secondResponse.Content.Headers.ContentType.MediaType, Is.EqualTo("application/json"));
     }
 
     [Test]
@@ -209,7 +191,7 @@ public class CategoryControllerTest
                 UserId = TestUser.Id
             },
             new Domain.Entities.Category{
-                CategoryName = "Salary",
+                CategoryName = "Test Category 2",
                 CategoryType = Domain.Entities.CategoryType.Income,
                 UserId = TestUser.Id
             }
@@ -218,7 +200,7 @@ public class CategoryControllerTest
         await db.SaveChangesAsync();
 
         var c1 = await db.Category.FirstOrDefaultAsync(c => c.CategoryName == "Test Category" && c.CategoryType == Domain.Entities.CategoryType.Expense);
-        var c2 = await db.Category.FirstOrDefaultAsync(c => c.CategoryName == "Salary" && c.CategoryType == Domain.Entities.CategoryType.Income);
+        var c2 = await db.Category.FirstOrDefaultAsync(c => c.CategoryName == "Test Category 2" && c.CategoryType == Domain.Entities.CategoryType.Income);
         Assert.IsNotNull(c1, "Expense category should be persisted to DB");
         Assert.IsNotNull(c2, "Income category should be persisted to DB");
 
@@ -229,9 +211,17 @@ public class CategoryControllerTest
         Assert.That(response.Content.Headers.ContentType?.MediaType, Is.EqualTo("application/json"));
 
         Assert.That(content, Does.Contain("Test Category"));
-        Assert.That(content, Does.Contain("Salary"));
-        Assert.That(content, Does.Contain("Expense"));
-        Assert.That(content, Does.Contain("Income"));
+        Assert.That(content, Does.Contain("Test Category 2"));
+        Assert.That(content, Does.Contain("expense"));
+        Assert.That(content, Does.Contain("income"));
+
+        // 不能使用固定的 Assert 測法，因為回傳的順序是隨機的
+        // var jsonResp = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(content);
+        // var actualCategories = jsonResp["categories"];
+        // Assert.That(actualCategories[0].GetProperty("categoryName").GetString(), Is.EqualTo("Test Category"));
+        // Assert.That(actualCategories[0].GetProperty("categoryType").GetString(), Is.EqualTo("expense"));
+        // Assert.That(actualCategories[1].GetProperty("categoryName").GetString(), Is.EqualTo("Test Category 2"));
+        // Assert.That(actualCategories[1].GetProperty("categoryType").GetString(), Is.EqualTo("income"));
     }
 
     [Test]
@@ -268,8 +258,8 @@ public class CategoryControllerTest
             Content = new StringContent(deleteReq, Encoding.UTF8, "application/json")
         };
 
-        var response = await _client.SendAsync(req);
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var resp = await _client.SendAsync(req);
+        Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
         var deletedCategory = await db.Category.FirstOrDefaultAsync(c => c.CategoryName == "Test Category" && c.CategoryType == Domain.Entities.CategoryType.Expense);
         Assert.IsNull(deletedCategory, "Category should be deleted from DB");
@@ -335,16 +325,17 @@ public class CategoryControllerTest
         }
         """;
 
-        var req = new HttpRequestMessage(HttpMethod.Put, "smartflow/v1/category")
-        {
-            Content = new StringContent(updateReq, Encoding.UTF8, "application/json")
-        };
+        var resp = await _client.PutAsync("smartflow/v1/category", new StringContent(
+            updateReq,
+            Encoding.UTF8,
+            "application/json"
+        ));
+        Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        Assert.That(resp.Content.Headers.ContentType.MediaType, Is.EqualTo("application/json"));
 
-        var response = await _client.SendAsync(req);
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var oldCategory = await db.Category.FirstOrDefaultAsync(c => c.CategoryName == "Test Category" && c.CategoryType == Domain.Entities.CategoryType.Expense);
+        Assert.IsNull(oldCategory, "Old category should not exist in DB");
 
-        var beforeCategory = await db.Category.FirstOrDefaultAsync(c => c.CategoryName == "Test Category" && c.CategoryType == Domain.Entities.CategoryType.Expense);
-        Assert.IsNull(beforeCategory, "Old category should not exist in DB");
         var updatedCategory = await db.Category.FirstOrDefaultAsync(c => c.CategoryName == "Updated Category" && c.CategoryType == Domain.Entities.CategoryType.Income);
         Assert.IsNotNull(updatedCategory, "Category should be updated in DB");
     }
@@ -371,13 +362,13 @@ public class CategoryControllerTest
         }
         """;
 
-        var req = new HttpRequestMessage(HttpMethod.Put, "smartflow/v1/category")
-        {
-            Content = new StringContent(updateReq, Encoding.UTF8, "application/json")
-        };
-
-        var response = await _client.SendAsync(req);
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        var resp = await _client.PutAsync("smartflow/v1/category", new StringContent(
+            updateReq,
+            Encoding.UTF8,
+            "application/json"
+        ));
+        Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+        Assert.That(resp.Content.Headers.ContentType.MediaType, Is.EqualTo("application/json"));
     }
 }
 
