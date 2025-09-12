@@ -83,13 +83,14 @@ namespace SmartFlowBackend.Domain.Services
                 throw new ArgumentException("User not found");
             }
 
-            var category = await _unitOfWork.Category.FindAsync(c => c.UserId == userId && c.CategoryName == req.OldName);
+            var category = await _unitOfWork.Category.FindAsync(c => c.UserId == userId && c.CategoryName == req.OldName && c.Type == req.OldType);
             if (category == null)
             {
                 throw new ArgumentException("Category not found");
             }
 
             category.CategoryName = req.NewName;
+            category.Type = req.NewType;
 
             await _unitOfWork.Category.UpdateAsync(category);
             await _unitOfWork.SaveAsync();

@@ -1,19 +1,18 @@
 using System.Net;
 using System.Text;
+
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.Logging.Testing;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using SmartFlowBackend.Application.Controller;
-using Testcontainers.PostgreSql;
-using SmartFlowBackend.Test.Helper;
-using SmartFlowBackend.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Testing;
+using Microsoft.Extensions.Logging;
+
+using SmartFlowBackend.Application.Controller;
 using SmartFlowBackend.Application.SwaggerSetting;
-using SmartFlowBackend.Domain.Contracts;
-using SmartFlowBackend.Domain.Entities;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using SmartFlowBackend.Infrastructure.Persistence;
+using SmartFlowBackend.Test.Helper;
+
+using Testcontainers.PostgreSql;
 
 namespace SmartFlowBackend.Test.Application.Controller.Category;
 
@@ -234,6 +233,152 @@ public class CategoryControllerTest
         Assert.That(content, Does.Contain("Salary"));
         Assert.That(content, Does.Contain("Expense"));
         Assert.That(content, Does.Contain("Income"));
+    }
+
+    [Test]
+    public async Task DeleteCategory_Should_Return_Ok()
+    {
+        var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
+
+        db.Category.AddRange(new List<Domain.Entities.Category>
+        {
+            new Domain.Entities.Category
+            {
+                CategoryName = "Test Category",
+                Type = Domain.Entities.CategoryType.Expense,
+                UserId = TestUser.Id
+            }
+        });
+
+        await db.SaveChangesAsync();
+
+        var c1 = await db.Category.FirstOrDefaultAsync(c => c.CategoryName == "Test Category" && c.Type == Domain.Entities.CategoryType.Expense);
+        Assert.IsNotNull(c1, "Expense category should be persisted to DB");
+
+        var deleteReq =
+        """
+        {
+            "name": "Test Category",
+            "type": "expense"
+        }
+        """;
+
+        var req = new HttpRequestMessage(HttpMethod.Delete, "smartflow/v1/category")
+        {
+            Content = new StringContent(deleteReq, Encoding.UTF8, "application/json")
+        };
+
+        var response = await _client.SendAsync(req);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var deletedCategory = await db.Category.FirstOrDefaultAsync(c => c.CategoryName == "Test Category" && c.Type == Domain.Entities.CategoryType.Expense);
+        Assert.IsNull(deletedCategory, "Category should be deleted from DB");
+    }
+
+    [Test]
+    public async Task DeleteCategory_When_Category_Is_Not_Exist_Should_Return_Ok()
+    {
+        var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
+
+        var c1 = await db.Category.FirstOrDefaultAsync(c => c.CategoryName == "Test Category" && c.Type == Domain.Entities.CategoryType.Expense);
+        Assert.IsNull(c1, "Category should not exist in DB");
+
+        var count = await db.Category.CountAsync();
+        Assert.That(count, Is.EqualTo(0), "There should be no categories in DB");
+
+        var deleteReq =
+        """
+        {
+            "name": "Test Category",
+            "type": "expense"
+        }
+        """;
+
+        var req = new HttpRequestMessage(HttpMethod.Delete, "smartflow/v1/category")
+        {
+            Content = new StringContent(deleteReq, Encoding.UTF8, "application/json")
+        };
+
+        var response = await _client.SendAsync(req);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+    }
+
+    [Test]
+    public async Task UpdateCategory_Should_Return_Ok()
+    {
+        var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
+
+        db.Category.AddRange(new List<Domain.Entities.Category>
+        {
+            new Domain.Entities.Category
+            {
+                CategoryName = "Test Category",
+                Type = Domain.Entities.CategoryType.Expense,
+                UserId = TestUser.Id
+            }
+        });
+
+        await db.SaveChangesAsync();
+
+        var c1 = await db.Category.FirstOrDefaultAsync(c => c.CategoryName == "Test Category" && c.Type == Domain.Entities.CategoryType.Expense);
+        Assert.IsNotNull(c1, "Expense category should be persisted to DB");
+
+        var updateReq =
+        """
+        {
+            "oldName": "Test Category",
+            "newName": "Updated Category",
+            "oldType": "expense",
+            "newType": "income"
+        }
+        """;
+
+        var req = new HttpRequestMessage(HttpMethod.Put, "smartflow/v1/category")
+        {
+            Content = new StringContent(updateReq, Encoding.UTF8, "application/json")
+        };
+
+        var response = await _client.SendAsync(req);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var beforeCategory = await db.Category.FirstOrDefaultAsync(c => c.CategoryName == "Test Category" && c.Type == Domain.Entities.CategoryType.Expense);
+        Assert.IsNull(beforeCategory, "Old category should not exist in DB");
+        var updatedCategory = await db.Category.FirstOrDefaultAsync(c => c.CategoryName == "Updated Category" && c.Type == Domain.Entities.CategoryType.Income);
+        Assert.IsNotNull(updatedCategory, "Category should be updated in DB");
+    }
+
+    [Test]
+    public async Task UpdateCategory_When_Category_Is_Not_Exist_Should_Return_BadRequest()
+    {
+        var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
+
+        var c1 = await db.Category.FirstOrDefaultAsync(c => c.CategoryName == "Test Category" && c.Type == Domain.Entities.CategoryType.Expense);
+        Assert.IsNull(c1, "Category should not exist in DB");
+
+        var count = await db.Category.CountAsync();
+        Assert.That(count, Is.EqualTo(0), "There should be no categories in DB");
+
+        var updateReq =
+        """
+        {
+            "oldName": "Test Category",
+            "newName": "Updated Category",
+            "oldType": "expense",
+            "newType": "income"
+        }
+        """;
+
+        var req = new HttpRequestMessage(HttpMethod.Put, "smartflow/v1/category")
+        {
+            Content = new StringContent(updateReq, Encoding.UTF8, "application/json")
+        };
+
+        var response = await _client.SendAsync(req);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
     }
 }
 
