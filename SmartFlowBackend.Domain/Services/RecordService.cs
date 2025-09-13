@@ -30,7 +30,7 @@ namespace SmartFlowBackend.Domain.Services
                 throw new ArgumentException("User not found");
             }
 
-            var category = await _unitOfWork.Category.FindAsync(c => c.CategoryName == request.Category && c.CategoryType == request.Type);
+            var category = await _unitOfWork.Category.FindAsync(c => c.CategoryName == request.Category && c.CategoryType == request.CategoryType);
             if (category == null)
             {
                 throw new ArgumentException("Category not found");
@@ -47,10 +47,10 @@ namespace SmartFlowBackend.Domain.Services
                 UserId = userId
             };
 
-            if (request.Tag != null && request.Tag.Any())
+            if (request.Tags != null && request.Tags.Any())
             {
-                var tags = await _unitOfWork.Tag.FindAllAsync(t => request.Tag.Contains(t.TagName) && t.UserId == userId);
-                if (tags == null || tags.Count() != request.Tag.Count)
+                var tags = await _unitOfWork.Tag.FindAllAsync(t => request.Tags.Contains(t.TagName) && t.UserId == userId);
+                if (tags == null || tags.Count() != request.Tags.Count)
                 {
                     throw new ArgumentException("One or more tags not found");
                 }

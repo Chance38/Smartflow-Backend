@@ -12,10 +12,10 @@ public class AddRecordRequest
 
     [JsonPropertyName("type")]
     [Required(ErrorMessage = "Type is required")]
-    public required CategoryType Type { get; set; }
+    public required CategoryType CategoryType { get; set; }
 
-    [JsonPropertyName("tag")]
-    public List<string>? Tag { get; set; }
+    [JsonPropertyName("tags")]
+    public List<string>? Tags { get; set; }
 
     [JsonPropertyName("amount")]
     [Required(ErrorMessage = "Amount is required")]
