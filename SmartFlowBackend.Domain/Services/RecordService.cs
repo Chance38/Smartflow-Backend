@@ -85,7 +85,7 @@ namespace SmartFlowBackend.Domain.Services
                 .GroupBy(r => r.CategoryName)
                 .Select(g => new Expense
                 {
-                    Category = g.Key,
+                    CategoryName = g.Key,
                     Amount = g.Sum(r => r.Amount)
                 }).ToList();
 
