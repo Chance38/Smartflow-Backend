@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SmartFlowBackend.Infrastructure.Persistence;
@@ -12,9 +13,11 @@ using SmartFlowBackend.Infrastructure.Persistence;
 namespace SmartFlowBackend.Infrastructure.Migrations
 {
     [DbContext(typeof(PostgresDbContext))]
-    partial class PostgresDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250913034338_AddRecordTemplateTable")]
+    partial class AddRecordTemplateTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -143,9 +146,8 @@ namespace SmartFlowBackend.Infrastructure.Migrations
                     b.Property<string>("CategoryName")
                         .HasColumnType("text");
 
-                    b.Property<string>("CategoryType")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("CategoryType")
+                        .HasColumnType("integer");
 
                     b.Property<string>("RecordTemplateName")
                         .IsRequired()

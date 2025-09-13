@@ -93,6 +93,7 @@ namespace SmartFlowBackend.Application.Controller
             _logger.LogInformation("Received request to delete category for user: {UserId}", userId);
 
             await _categoryService.DeleteCategoryAsync(req, userId);
+            _logger.LogInformation("Deleted category '{CategoryName}' successfully", req.CategoryName);
 
             return Ok(new OkSituation
             {

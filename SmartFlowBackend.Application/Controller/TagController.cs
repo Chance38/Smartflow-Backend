@@ -94,6 +94,7 @@ namespace SmartFlowBackend.Application.Controller
             _logger.LogInformation("Received request to delete tag '{TagName}' for user: {UserId}", req.TagName, userId);
 
             await _tagService.DeleteTagAsync(userId, req.TagName);
+            _logger.LogInformation("Deleted tag '{TagName}' successfully", req.TagName);
 
             return Ok(new OkSituation
             {

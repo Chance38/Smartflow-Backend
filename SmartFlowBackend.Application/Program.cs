@@ -30,6 +30,7 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<IBalanceService, BalanceService>();
 builder.Services.AddScoped<ISummaryService, SummaryService>();
+builder.Services.AddScoped<IRecordTemplateService, RecordTemplateService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

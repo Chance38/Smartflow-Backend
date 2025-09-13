@@ -14,6 +14,7 @@ public class PostgresDbContext : DbContext
     public DbSet<Tag> Tag { get; set; }
     public DbSet<Record> Record { get; set; }
     public DbSet<MonthlySummary> MonthlySummary { get; set; }
+    public DbSet<RecordTemplate> RecordTemplate { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -24,6 +25,7 @@ public class PostgresDbContext : DbContext
         modelBuilder.Entity<Record>().ToTable("Record");
         modelBuilder.Entity<Tag>().ToTable("Tag");
         modelBuilder.Entity<MonthlySummary>().ToTable("MonthlySummary");
+        modelBuilder.Entity<RecordTemplate>().ToTable("RecordTemplate");
 
         modelBuilder.Entity<MonthlySummary>()
             .HasOne(ms => ms.User)
@@ -49,6 +51,10 @@ public class PostgresDbContext : DbContext
 
         modelBuilder.Entity<Category>()
             .Property(c => c.CategoryType)
+            .HasConversion<string>();
+
+        modelBuilder.Entity<RecordTemplate>()
+            .Property(rt => rt.CategoryType)
             .HasConversion<string>();
 
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(PostgresDbContext).Assembly);

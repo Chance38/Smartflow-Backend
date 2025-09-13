@@ -11,6 +11,7 @@ public class UnitOfWork : IUnitOfWork
     public ITagRepository Tag { get; }
     public IUserRepository User { get; }
     public IMonthlySummaryRepository MonthlySummary { get; }
+    public IRecordTemplateRepository RecordTemplate { get; }
 
     public UnitOfWork(PostgresDbContext context)
     {
@@ -20,6 +21,7 @@ public class UnitOfWork : IUnitOfWork
         Tag = new TagRepository(_context);
         User = new UserRepository(_context);
         MonthlySummary = new MonthlySummaryRepository(_context);
+        RecordTemplate = new RecordTemplateRepository(_context);
     }
 
     public async Task<int> SaveAsync()

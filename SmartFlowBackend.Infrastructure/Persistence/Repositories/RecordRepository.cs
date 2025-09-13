@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using SmartFlowBackend.Domain.Entities;
 using SmartFlowBackend.Domain.Interfaces;
 
@@ -8,21 +7,5 @@ public class RecordRepository : Repository<Record>, IRecordRepository
 {
     public RecordRepository(PostgresDbContext context) : base(context)
     {
-    }
-
-    public async Task<IEnumerable<Record>> GetRecordsByUserIdAndMonthAsync(Guid userId, int year, int month)
-    {
-        return await _context.Record
-            .Include(r => r.Category)
-            .Where(r => r.Category.UserId == userId && r.Date.Year == year && r.Date.Month == month)
-            .ToListAsync();
-    }
-
-    public async Task<IEnumerable<Record>> GetRecordsByUserIdAsync(Guid userId)
-    {
-        return await _context.Record
-            .Include(r => r.Category)
-            .Where(r => r.Category.UserId == userId)
-            .ToListAsync();
     }
 }

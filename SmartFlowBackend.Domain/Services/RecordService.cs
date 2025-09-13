@@ -1,8 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using SmartFlowBackend.Domain.Contracts;
 using SmartFlowBackend.Domain.Entities;
 using SmartFlowBackend.Domain.Interfaces;
-using System.Linq;
 
 namespace SmartFlowBackend.Domain.Services
 {

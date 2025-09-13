@@ -7,5 +7,6 @@ public interface IUnitOfWork : IDisposable
     ITagRepository Tag { get; }
     IUserRepository User { get; }
     IMonthlySummaryRepository MonthlySummary { get; }
+    IRecordTemplateRepository RecordTemplate { get; }
     Task<int> SaveAsync();
 }
