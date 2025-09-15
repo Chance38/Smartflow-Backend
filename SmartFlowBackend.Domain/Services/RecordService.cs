@@ -28,7 +28,7 @@ namespace SmartFlowBackend.Domain.Services
                 throw new ArgumentException("User not found");
             }
 
-            var category = await _unitOfWork.Category.FindAsync(c => c.CategoryName == request.Category && c.CategoryType == request.CategoryType);
+            var category = await _unitOfWork.Category.FindAsync(c => c.CategoryName == request.CategoryName && c.CategoryType == request.CategoryType);
             if (category == null)
             {
                 throw new ArgumentException("Category not found");
@@ -38,7 +38,7 @@ namespace SmartFlowBackend.Domain.Services
             {
                 RecordId = Guid.NewGuid(),
                 CategoryId = category.CategoryId,
-                CategoryName = request.Category,
+                CategoryName = request.CategoryName,
                 CategoryType = category.CategoryType,
                 Amount = request.Amount,
                 Date = request.Date,

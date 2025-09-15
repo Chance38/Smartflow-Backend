@@ -89,7 +89,7 @@ using (var scope = app.Services.CreateScope())
                 Username = TestUser.Username,
                 UserAccount = TestUser.Account,
                 UserPassword = TestUser.Password,
-                Balance = 10000.0f
+                Balance = TestUser.InitialBalance
             };
             uow.User.AddAsync(user).GetAwaiter().GetResult();
             uow.SaveAsync().GetAwaiter().GetResult();

@@ -7,5 +7,5 @@ public static class TestUser
     public const string Username = "Chance";
     public const string Account = "chance";
     public const string Password = "password";
-    public const float InitialBalance = 1000.0f;
+    public const float InitialBalance = 10000.0f;
 }

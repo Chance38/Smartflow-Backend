@@ -8,7 +8,7 @@ public class AddRecordRequest
 {
     [JsonPropertyName("categoryName")]
     [Required(ErrorMessage = "Category is required")]
-    public required string Category { get; set; }
+    public required string CategoryName { get; set; }
 
     [JsonPropertyName("categoryType")]
     [Required(ErrorMessage = "Type is required")]
