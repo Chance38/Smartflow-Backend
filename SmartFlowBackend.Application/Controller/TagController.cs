@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Middleware;
-using SmartFlowBackend.Application.SwaggerSetting;
-using SmartFlowBackend.Domain.Contracts;
-using SmartFlowBackend.Domain.Interfaces;
+using Domain.Contract;
+using Domain.Interface;
 
-namespace SmartFlowBackend.Application.Controller
+namespace Application.Controller
 {
     [ApiController]
     [Route("smartflow/v1")]
@@ -26,13 +25,12 @@ namespace SmartFlowBackend.Application.Controller
         public async Task<IActionResult> AddTag([FromBody] AddTagRequest req)
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
-
-            var userId = TestUser.Id;
+            var userId = ServiceMiddleware.GetUserId(HttpContext);
             _logger.LogInformation("Received request to add tag for user: {UserId}", userId);
 
             try
             {
-                await _tagService.AddTagAsync(req, userId);
+                await _tagService.AddTagAsync(userId, req.Tag);
                 _logger.LogInformation("Create tag Successfully");
 
             }
@@ -58,14 +56,13 @@ namespace SmartFlowBackend.Application.Controller
         public async Task<IActionResult> GetAllTags()
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
-
-            var userId = TestUser.Id;
+            var userId = ServiceMiddleware.GetUserId(HttpContext);
             _logger.LogInformation("Received request to get all tags for user: {UserId}", userId);
 
             var tags = new List<Tag>();
             try
             {
-                tags = await _tagService.GetAllTagsByUserIdAsync(userId);
+                tags = await _tagService.GetAllTagsAsync(userId);
             }
             catch (ArgumentException ex)
             {
@@ -89,18 +86,26 @@ namespace SmartFlowBackend.Application.Controller
         public async Task<IActionResult> DeleteTag([FromBody] DeleteTagRequest req)
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
+            var userId = ServiceMiddleware.GetUserId(HttpContext);
+            _logger.LogInformation("Received request to delete tag '{TagName}' for user: {UserId}", req.Tag.Name, userId);
 
-            var userId = TestUser.Id;
-            _logger.LogInformation("Received request to delete tag '{TagName}' for user: {UserId}", req.TagName, userId);
-
-            await _tagService.DeleteTagAsync(userId, req.TagName);
-            _logger.LogInformation("Deleted tag '{TagName}' successfully", req.TagName);
+            try
+            {
+                await _tagService.DeleteTagAsync(userId, req.Tag);
+                _logger.LogInformation("Deleted tag '{TagName}' successfully", req.Tag.Name);
+            }
+            catch (ArgumentException)
+            {
+                return Ok(new OkSituation
+                {
+                    RequestId = requestId
+                });
+            }
 
             return Ok(new OkSituation
             {
                 RequestId = requestId
             });
-
         }
 
         [HttpPut("tag")]
@@ -110,13 +115,12 @@ namespace SmartFlowBackend.Application.Controller
         public async Task<IActionResult> UpdateTag([FromBody] UpdateTagRequest req)
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
-
-            var userId = TestUser.Id;
+            var userId = ServiceMiddleware.GetUserId(HttpContext);
             _logger.LogInformation("Received request to update tag for user: {UserId}", userId);
 
             try
             {
-                await _tagService.UpdateTagAsync(req, userId);
+                await _tagService.UpdateTagAsync(userId, req.OldTag, req.NewTag);
             }
             catch (ArgumentException ex)
             {

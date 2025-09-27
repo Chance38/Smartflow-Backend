@@ -18,7 +18,7 @@ WORKDIR /app
 # Copy the published output from the build stage
 COPY --from=build /app/publish .
 
-ENV ASPNETCORE_URLS=http://+:8080
-EXPOSE 8080
+ENV ASPNETCORE_URLS=http://+:80
+EXPOSE 80
 # Correct the entrypoint to point to the dll in the /app directory
 ENTRYPOINT ["dotnet", "SmartFlowBackend.Application.dll"]

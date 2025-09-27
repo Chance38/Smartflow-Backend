@@ -1,7 +1,7 @@
 using Testcontainers.PostgreSql;
 using DotNet.Testcontainers.Builders;
 
-namespace SmartFlowBackend.Test.Helper;
+namespace Test.Helper;
 
 public class TestHelper
 {

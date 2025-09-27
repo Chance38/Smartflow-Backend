@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using SmartFlowBackend.Domain.Entities;
+using Domain.Entity;
 
-namespace SmartFlowBackend.Infrastructure.Persistence;
+namespace Infrastructure.Persistence;
 
 public class PostgresDbContext : DbContext
 {
@@ -9,7 +9,6 @@ public class PostgresDbContext : DbContext
     {
     }
 
-    public DbSet<User> User { get; set; }
     public DbSet<Category> Category { get; set; }
     public DbSet<Tag> Tag { get; set; }
     public DbSet<Record> Record { get; set; }
@@ -20,20 +19,12 @@ public class PostgresDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<User>().ToTable("User");
+        modelBuilder.Entity<Balance>().ToTable("Balance");
         modelBuilder.Entity<Category>().ToTable("Category");
         modelBuilder.Entity<Record>().ToTable("Record");
         modelBuilder.Entity<Tag>().ToTable("Tag");
         modelBuilder.Entity<MonthlySummary>().ToTable("MonthlySummary");
         modelBuilder.Entity<RecordTemplate>().ToTable("RecordTemplate");
-
-        modelBuilder.Entity<MonthlySummary>()
-            .HasOne(ms => ms.User)
-            .WithMany()
-            .HasForeignKey(ms => ms.UserId);
-
-        modelBuilder.Entity<Record>()
-            .HasIndex(r => r.Date);
 
         modelBuilder.Entity<Record>()
             .HasOne(r => r.Category)
@@ -46,11 +37,11 @@ public class PostgresDbContext : DbContext
             .WithMany(t => t.Records);
 
         modelBuilder.Entity<Record>()
-            .Property(r => r.CategoryType)
+            .Property(r => r.Type)
             .HasConversion<string>();
 
         modelBuilder.Entity<Category>()
-            .Property(c => c.CategoryType)
+            .Property(c => c.Type)
             .HasConversion<string>();
 
         modelBuilder.Entity<RecordTemplate>()

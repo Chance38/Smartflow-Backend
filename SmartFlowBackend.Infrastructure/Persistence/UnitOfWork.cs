@@ -1,25 +1,25 @@
-using SmartFlowBackend.Domain.Interfaces;
-using SmartFlowBackend.Infrastructure.Persistence.Repositories;
+using Domain.Interface;
+using Infrastructure.Persistence.Repository;
 
-namespace SmartFlowBackend.Infrastructure.Persistence;
+namespace Infrastructure.Persistence;
 
 public class UnitOfWork : IUnitOfWork
 {
     private readonly PostgresDbContext _context;
+    public IBalanceRepository Balance { get; }
     public ICategoryRepository Category { get; }
     public IRecordRepository Record { get; }
     public ITagRepository Tag { get; }
-    public IUserRepository User { get; }
     public IMonthlySummaryRepository MonthlySummary { get; }
     public IRecordTemplateRepository RecordTemplate { get; }
 
     public UnitOfWork(PostgresDbContext context)
     {
         _context = context;
+        Balance = new BalanceRepository(_context);
         Category = new CategoryRepository(_context);
         Record = new RecordRepository(_context);
         Tag = new TagRepository(_context);
-        User = new UserRepository(_context);
         MonthlySummary = new MonthlySummaryRepository(_context);
         RecordTemplate = new RecordTemplateRepository(_context);
     }

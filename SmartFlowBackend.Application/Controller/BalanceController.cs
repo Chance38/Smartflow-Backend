@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Middleware;
-using SmartFlowBackend.Application.SwaggerSetting;
-using SmartFlowBackend.Domain.Contracts;
-using SmartFlowBackend.Domain.Interfaces;
+using Domain.Contract;
+using Domain.Interface;
 
-namespace SmartFlowBackend.Application.Controller
+namespace Application.Controller
 {
     [ApiController]
     [Route("smartflow/v1")]
@@ -26,21 +25,21 @@ namespace SmartFlowBackend.Application.Controller
         public async Task<IActionResult> GetBalance()
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
-
-            var userId = TestUser.Id;
+            var userId = ServiceMiddleware.GetUserId(HttpContext);
             _logger.LogInformation("Received request to get balance for user {UserId}", userId);
 
             try
             {
-                var balance = await _balanceService.GetBalanceByUserIdAsync(userId);
+                var balance = await _balanceService.GetBalanceAsync(userId);
                 return Ok(new GetBalanceResponse
                 {
                     RequestId = requestId,
                     Balance = balance
                 });
             }
-            catch (ArgumentException ex)
+            catch (InvalidOperationException ex)
             {
+                _logger.LogError(ex, "This Should never happen. Balance Form User: {UserId} doesn't create.", userId);
                 return BadRequest(new ClientErrorSituation
                 {
                     RequestId = requestId,

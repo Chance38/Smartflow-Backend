@@ -3,10 +3,11 @@ using Serilog.Events;
 using Swashbuckle.AspNetCore.Filters;
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
-using SmartFlowBackend.Application.SwaggerSetting;
-using SmartFlowBackend.Infrastructure.Persistence;
-using SmartFlowBackend.Domain.Interfaces;
-using SmartFlowBackend.Domain.Services;
+using Infrastructure.Persistence;
+using Application.SwaggerSetting;
+using Domain.Interface;
+using Domain.Service;
+using Infrastructure.Persistence.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,13 @@ builder.Services.AddDbContext<PostgresDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IRecordRepository, RecordRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ITagRepository, TagRepository>();
+builder.Services.AddScoped<IBalanceRepository, BalanceRepository>();
+builder.Services.AddScoped<IMonthlySummaryRepository, MonthlySummaryRepository>();
+builder.Services.AddScoped<IRecordTemplateRepository, RecordTemplateRepository>();
+
 builder.Services.AddScoped<IRecordService, RecordService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<ITagService, TagService>();
@@ -78,22 +86,7 @@ using (var scope = app.Services.CreateScope())
     {
         var dbContext = services.GetRequiredService<PostgresDbContext>();
         dbContext.Database.Migrate();
-
-        var uow = services.GetRequiredService<SmartFlowBackend.Domain.Interfaces.IUnitOfWork>();
-        var existing = uow.User.FindAsync(u => u.UserId == TestUser.Id).GetAwaiter().GetResult();
-        if (existing == null)
-        {
-            var user = new SmartFlowBackend.Domain.Entities.User
-            {
-                UserId = TestUser.Id,
-                Username = TestUser.Username,
-                UserAccount = TestUser.Account,
-                UserPassword = TestUser.Password,
-                Balance = TestUser.InitialBalance
-            };
-            uow.User.AddAsync(user).GetAwaiter().GetResult();
-            uow.SaveAsync().GetAwaiter().GetResult();
-        }
+        var uow = services.GetRequiredService<IUnitOfWork>();
     }
     catch (Exception ex)
     {

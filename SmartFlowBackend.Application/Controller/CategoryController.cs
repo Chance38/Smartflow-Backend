@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Middleware;
-using SmartFlowBackend.Application.SwaggerSetting;
-using SmartFlowBackend.Domain.Contracts;
-using SmartFlowBackend.Domain.Interfaces;
+using Domain.Contract;
+using Domain.Interface;
 
-namespace SmartFlowBackend.Application.Controller
+namespace Application.Controller
 {
     [Route("smartflow/v1")]
     [ApiController]
@@ -26,13 +25,12 @@ namespace SmartFlowBackend.Application.Controller
         public async Task<IActionResult> AddCategory([FromBody] AddCategoryRequest req)
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
-
-            var userId = TestUser.Id;
+            var userId = ServiceMiddleware.GetUserId(HttpContext);
             _logger.LogInformation("Received request to add category for user: {UserId}", userId);
 
             try
             {
-                await _categoryService.AddCategoryAsync(req, userId);
+                await _categoryService.AddCategoryAsync(userId, req.Category);
                 _logger.LogInformation("Create category Successfully");
             }
             catch (ArgumentException ex)
@@ -57,14 +55,13 @@ namespace SmartFlowBackend.Application.Controller
         public async Task<IActionResult> GetAllCategories()
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
-
-            var userId = TestUser.Id;
+            var userId = ServiceMiddleware.GetUserId(HttpContext);
             _logger.LogInformation("Received request to get all categories for user: {UserId}", userId);
 
             var categories = new List<Category>();
             try
             {
-                categories = await _categoryService.GetAllCategoriesByUserIdAsync(userId);
+                categories = await _categoryService.GetAllCategoriesAsync(userId);
             }
             catch (ArgumentException ex)
             {
@@ -88,12 +85,22 @@ namespace SmartFlowBackend.Application.Controller
         public async Task<IActionResult> DeleteCategory([FromBody] DeleteCategoryRequest req)
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
-
-            var userId = TestUser.Id;
+            var userId = ServiceMiddleware.GetUserId(HttpContext);
             _logger.LogInformation("Received request to delete category for user: {UserId}", userId);
 
-            await _categoryService.DeleteCategoryAsync(req, userId);
-            _logger.LogInformation("Deleted category '{CategoryName}' successfully", req.CategoryName);
+            try
+            {
+                _logger.LogInformation("Deleted category name: '{CategoryName}', type: '{CategoryType}' successfully", req.Category.Name, req.Category.Type);
+                await _categoryService.DeleteCategoryAsync(userId, req.Category);
+            }
+            catch (ArgumentException)
+            {
+                return Ok(new OkSituation
+                {
+                    RequestId = requestId
+                });
+            }
+
 
             return Ok(new OkSituation
             {
@@ -108,13 +115,12 @@ namespace SmartFlowBackend.Application.Controller
         public async Task<IActionResult> UpdateCategory([FromBody] UpdateCategoryRequest req)
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
-
-            var userId = TestUser.Id;
+            var userId = ServiceMiddleware.GetUserId(HttpContext);
             _logger.LogInformation("Received request to update category for user: {UserId}", userId);
 
             try
             {
-                await _categoryService.UpdateCategoryAsync(req, userId);
+                await _categoryService.UpdateCategoryAsync(userId, req.OldCategory, req.NewCategory);
                 _logger.LogInformation("Updated category successfully");
             }
             catch (ArgumentException ex)

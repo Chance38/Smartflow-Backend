@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Middleware;
-using SmartFlowBackend.Application.SwaggerSetting;
-using SmartFlowBackend.Domain.Contracts;
-using SmartFlowBackend.Domain.Interfaces;
+using Domain.Contract;
+using Domain.Interface;
 
-namespace SmartFlowBackend.Application.Controller
+namespace Application.Controller
 {
     [ApiController]
     [Route("smartflow/v1")]
@@ -28,13 +27,12 @@ namespace SmartFlowBackend.Application.Controller
         public async Task<IActionResult> AddRecordTemplate([FromBody] AddRecordTemplateRequest req)
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
-
-            var userId = TestUser.Id;
+            var userId = ServiceMiddleware.GetUserId(HttpContext);
             _logger.LogInformation("Received request to add record for user {UserId}", userId);
 
             try
             {
-                await _recordTemplateService.AddRecordTemplateAsync(req, userId);
+                await _recordTemplateService.AddRecordTemplateAsync(userId, req.RecordTemplate);
                 _logger.LogInformation("Create record template Successfully");
             }
             catch (ArgumentException ex)
@@ -59,8 +57,7 @@ namespace SmartFlowBackend.Application.Controller
         public async Task<IActionResult> GetAllRecordTemplates()
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
-
-            var userId = TestUser.Id;
+            var userId = ServiceMiddleware.GetUserId(HttpContext);
             _logger.LogInformation("Received request to get all record templates for user {UserId}", userId);
 
             try
@@ -88,13 +85,12 @@ namespace SmartFlowBackend.Application.Controller
         public async Task<IActionResult> DeleteRecordTemplate([FromBody] DeleteRecordTemplateRequest req)
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
-
-            var userId = TestUser.Id;
+            var userId = ServiceMiddleware.GetUserId(HttpContext);
             _logger.LogInformation("Received request to delete record template for user {UserId}", userId);
 
 
-            await _recordTemplateService.DeleteRecordTemplateAsync(req, userId);
-            _logger.LogInformation("Delete record template '{RecordTemplateName}' Successfully", req.RecordTemplateName);
+            await _recordTemplateService.DeleteRecordTemplateAsync(userId, req.Name);
+            _logger.LogInformation("Delete record template '{RecordTemplateName}' Successfully", req.Name);
 
             return Ok(new OkSituation
             {

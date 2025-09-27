@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Middleware;
-using SmartFlowBackend.Application.SwaggerSetting;
-using SmartFlowBackend.Domain.Contracts;
-using SmartFlowBackend.Domain.Interfaces;
+using Domain.Contract;
+using Domain.Interface;
 
-namespace SmartFlowBackend.Application.Controller
+namespace Application.Controller
 {
     [ApiController]
     [Route("smartflow/v1")]
@@ -26,13 +25,12 @@ namespace SmartFlowBackend.Application.Controller
         public async Task<IActionResult> AddRecord([FromBody] AddRecordRequest req)
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
-
-            var userId = TestUser.Id;
+            var userId = ServiceMiddleware.GetUserId(HttpContext);
             _logger.LogInformation("Received request to add record for user {UserId}", userId);
 
             try
             {
-                await _recordService.AddRecordAsync(req, userId);
+                await _recordService.AddRecordAsync(userId, req);
                 _logger.LogInformation("Create record Successfully");
             }
             catch (ArgumentException ex)
@@ -57,8 +55,7 @@ namespace SmartFlowBackend.Application.Controller
         public async Task<IActionResult> GetThisMonthExpenses()
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
-
-            var userId = TestUser.Id;
+            var userId = ServiceMiddleware.GetUserId(HttpContext);
             _logger.LogInformation("Received request to get records for user {UserId}", userId);
 
             var expenses = new List<Expense>();
@@ -80,67 +77,6 @@ namespace SmartFlowBackend.Application.Controller
                 RequestId = requestId,
                 Expenses = expenses
             });
-        }
-
-        [HttpGet("month-records")]
-        [ProducesResponseType(typeof(GetMonthRecordsResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetMonthRecords([FromQuery] int? period)
-        {
-            var requestId = ServiceMiddleware.GetRequestId(HttpContext);
-
-            var userId = TestUser.Id;
-            _logger.LogInformation("Received request to get records for user {UserId} with period {Period}", userId, period);
-
-            try
-            {
-                if (!period.HasValue)
-                {
-                    var records = await _recordService.GetAllMonthRecordsAsync(userId);
-                    return Ok(new GetMonthRecordsResponse
-                    {
-                        RequestId = requestId,
-                        Records = records
-                    });
-                }
-
-                switch (period.Value)
-                {
-                    case 1:
-                        {
-                            var records = await _recordService.GetThisMonthRecordsAsync(userId);
-                            return Ok(new GetMonthRecordsResponse
-                            {
-                                RequestId = requestId,
-                                Records = records
-                            });
-                        }
-                    case 6:
-                        {
-                            var records = await _recordService.GetLastSixMonthRecordsAsync(userId);
-                            return Ok(new GetMonthRecordsResponse
-                            {
-                                RequestId = requestId,
-                                Records = records
-                            });
-                        }
-                    default:
-                        return BadRequest(new ClientErrorSituation
-                        {
-                            RequestId = requestId,
-                            ErrorMessage = "Invalid period. Supported values are 1 (this month) and 6 (last six months)."
-                        });
-                }
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new ClientErrorSituation
-                {
-                    RequestId = requestId,
-                    ErrorMessage = ex.Message
-                });
-            }
         }
     }
 }

@@ -1,7 +1,7 @@
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace SmartFlowBackend.Application.SwaggerSetting;
+namespace Application.SwaggerSetting;
 
 public class ServerDocumentFilter : IDocumentFilter
 {
@@ -9,7 +9,7 @@ public class ServerDocumentFilter : IDocumentFilter
     {
         swaggerDoc.Servers = new List<OpenApiServer>
         {
-            new OpenApiServer { Url = "http://localhost:8080", Description = "Production server" }
+            new OpenApiServer { Url = "http://localhost:2000", Description = "Production server" }
         };
     }
 }
