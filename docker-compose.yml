@@ -12,6 +12,10 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - LOGGER_URL=http://logger-seq:80
       - ConnectionStrings__Postgres_Connection=Host=smartflow-db;Port=5432;Database=SmarTechTeam;Username=smartech;Password=Stt@1234
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=smartech
+      - RABBITMQ_PASSWORD=Stt@1234
     depends_on:
       smartflow-db:
         condition: service_healthy
@@ -33,7 +37,7 @@ services:
       POSTGRES_DB: SmarTechTeam
     volumes:
       - postgresql_data:/var/lib/postgresql/data
-    restart: always
+    restart: unless-stopped
     ports:
       - "3000:5432"
     networks:
