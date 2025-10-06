@@ -23,6 +23,6 @@ public class GetMonthSummariesResponse
     [JsonPropertyName("requestId")]
     public required string RequestId { get; set; }
 
-    [JsonPropertyName("records")]
-    public List<SummaryPerMonth> Records { get; set; } = new List<SummaryPerMonth>();
+    [JsonPropertyName("summaries")]
+    public List<SummaryPerMonth> Summaries { get; set; } = new List<SummaryPerMonth>();
 }

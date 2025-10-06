@@ -36,7 +36,7 @@ namespace Application.Controller
                     return Ok(new GetMonthSummariesResponse
                     {
                         RequestId = requestId,
-                        Records = records
+                        Summaries = records
                     });
                 }
 
@@ -53,7 +53,7 @@ namespace Application.Controller
                             return Ok(new GetMonthSummariesResponse
                             {
                                 RequestId = requestId,
-                                Records = records
+                                Summaries = records
                             });
                         }
                     case 6:
@@ -69,7 +69,7 @@ namespace Application.Controller
                             return Ok(new GetMonthSummariesResponse
                             {
                                 RequestId = requestId,
-                                Records = records
+                                Summaries = records
                             });
                         }
                     default:
