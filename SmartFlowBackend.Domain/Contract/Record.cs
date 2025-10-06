@@ -36,29 +36,5 @@ public class GetThisMonthExpensesResponse
     public required string RequestId { get; set; }
 
     [JsonPropertyName("expenses")]
-    public required List<Expense> Expenses { get; set; }
-}
-
-public class RecordPerMonth
-{
-    [JsonPropertyName("year")]
-    public required int Year { get; set; }
-
-    [JsonPropertyName("month")]
-    public required int Month { get; set; }
-
-    [JsonPropertyName("expense")]
-    public required float Expense { get; set; }
-
-    [JsonPropertyName("income")]
-    public required float Income { get; set; }
-}
-
-public class GetMonthRecordsResponse
-{
-    [JsonPropertyName("requestId")]
-    public required string RequestId { get; set; }
-
-    [JsonPropertyName("records")]
-    public required List<RecordPerMonth> Records { get; set; }
+    public List<Expense> Expenses { get; set; } = new List<Expense>();
 }

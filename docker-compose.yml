@@ -21,7 +21,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     networks:
-      - identity-networks
+      - smartech-networks
 
   smartflow-db:
     image: postgres:15
@@ -41,12 +41,12 @@ services:
     ports:
       - "3000:5432"
     networks:
-      - identity-networks
+      - smartech-networks
 
 volumes:
   postgresql_data:
 
 networks:
-  identity-networks:
+  smartech-networks:
     external: true
     driver: bridge

@@ -37,7 +37,7 @@ public class GetAllRecordTemplatesResponse
     public required string RequestId { get; set; }
 
     [JsonPropertyName("recordTemplates")]
-    public required List<RecordTemplate> RecordTemplates { get; set; }
+    public List<RecordTemplate> RecordTemplates { get; set; } = new List<RecordTemplate>();
 }
 
 public class DeleteRecordTemplateRequest

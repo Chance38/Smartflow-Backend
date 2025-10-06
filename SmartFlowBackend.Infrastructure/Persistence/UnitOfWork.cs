@@ -10,7 +10,7 @@ public class UnitOfWork : IUnitOfWork
     public ICategoryRepository Category { get; }
     public IRecordRepository Record { get; }
     public ITagRepository Tag { get; }
-    public IMonthlySummaryRepository MonthlySummary { get; }
+    public ISummaryRepository MonthlySummary { get; }
     public IRecordTemplateRepository RecordTemplate { get; }
 
     public UnitOfWork(PostgresDbContext context)
@@ -20,7 +20,7 @@ public class UnitOfWork : IUnitOfWork
         Category = new CategoryRepository(_context);
         Record = new RecordRepository(_context);
         Tag = new TagRepository(_context);
-        MonthlySummary = new MonthlySummaryRepository(_context);
+        MonthlySummary = new SummaryRepository(_context);
         RecordTemplate = new RecordTemplateRepository(_context);
     }
 

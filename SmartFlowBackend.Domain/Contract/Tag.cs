@@ -22,7 +22,7 @@ public class GetAllTagsResponse
     public required string RequestId { get; set; }
 
     [JsonPropertyName("tags")]
-    public required List<Tag> Tags { get; set; }
+    public List<Tag> Tags { get; set; } = new List<Tag>();
 }
 
 public class DeleteTagRequest

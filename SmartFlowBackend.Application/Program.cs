@@ -36,7 +36,7 @@ builder.Services.AddScoped<IRecordRepository, RecordRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<IBalanceRepository, BalanceRepository>();
-builder.Services.AddScoped<IMonthlySummaryRepository, MonthlySummaryRepository>();
+builder.Services.AddScoped<ISummaryRepository, SummaryRepository>();
 builder.Services.AddScoped<IRecordTemplateRepository, RecordTemplateRepository>();
 
 builder.Services.AddSingleton<UserRegisterSubscriber>();

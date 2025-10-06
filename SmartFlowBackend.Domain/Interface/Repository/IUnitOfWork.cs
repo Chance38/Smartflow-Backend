@@ -6,7 +6,7 @@ public interface IUnitOfWork : IDisposable
     ICategoryRepository Category { get; }
     IRecordRepository Record { get; }
     ITagRepository Tag { get; }
-    IMonthlySummaryRepository MonthlySummary { get; }
+    ISummaryRepository MonthlySummary { get; }
     IRecordTemplateRepository RecordTemplate { get; }
     Task<int> SaveAsync();
 }

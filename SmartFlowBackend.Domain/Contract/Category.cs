@@ -34,7 +34,7 @@ public class GetAllCategoriesResponse
     public required string RequestId { get; set; }
 
     [JsonPropertyName("categories")]
-    public required List<Category> Categories { get; set; }
+    public List<Category> Categories { get; set; } = new List<Category>();
 }
 
 public class DeleteCategoryRequest

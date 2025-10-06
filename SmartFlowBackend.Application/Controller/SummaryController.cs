@@ -19,7 +19,7 @@ namespace Application.Controller
         }
 
         [HttpGet("month-summary")]
-        [ProducesResponseType(typeof(GetMonthRecordsResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(GetMonthSummariesResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetMonthRecords([FromQuery] int? period)
@@ -33,7 +33,7 @@ namespace Application.Controller
                 if (!period.HasValue)
                 {
                     var records = await _summaryService.GetAllSummariesAsync(userId);
-                    return Ok(new GetMonthRecordsResponse
+                    return Ok(new GetMonthSummariesResponse
                     {
                         RequestId = requestId,
                         Records = records
@@ -50,7 +50,7 @@ namespace Application.Controller
                                 now.Year, now.Month,
                                 now.Year, now.Month
                             );
-                            return Ok(new GetMonthRecordsResponse
+                            return Ok(new GetMonthSummariesResponse
                             {
                                 RequestId = requestId,
                                 Records = records
@@ -66,7 +66,7 @@ namespace Application.Controller
                                 start.Year, start.Month,
                                 end.Year, end.Month
                             );
-                            return Ok(new GetMonthRecordsResponse
+                            return Ok(new GetMonthSummariesResponse
                             {
                                 RequestId = requestId,
                                 Records = records

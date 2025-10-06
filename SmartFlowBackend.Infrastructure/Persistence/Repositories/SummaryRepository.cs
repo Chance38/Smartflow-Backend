@@ -3,9 +3,9 @@ using Domain.Interface;
 
 namespace Infrastructure.Persistence.Repository;
 
-public class MonthlySummaryRepository : Repository<MonthlySummary>, IMonthlySummaryRepository
+public class SummaryRepository : Repository<MonthlySummary>, ISummaryRepository
 {
-    public MonthlySummaryRepository(PostgresDbContext context) : base(context)
+    public SummaryRepository(PostgresDbContext context) : base(context)
     {
     }
 
