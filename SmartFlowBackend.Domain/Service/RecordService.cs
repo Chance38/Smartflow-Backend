@@ -8,23 +8,17 @@ public class RecordService : IRecordService
     private readonly IRecordRepository _recordRepo;
     private readonly ICategoryRepository _categoryRepo;
     private readonly ITagRepository _tagRepo;
-    private readonly ISummaryService _summaryService;
-    private readonly IBalanceService _balanceService;
 
     public RecordService(
         IUnitOfWork unitOfWork,
         IRecordRepository recordRepo,
         ICategoryRepository categoryRepo,
-        ITagRepository tagRepo,
-        ISummaryService summaryService,
-        IBalanceService balanceService)
+        ITagRepository tagRepo)
     {
         _unitOfWork = unitOfWork;
         _recordRepo = recordRepo;
         _categoryRepo = categoryRepo;
         _tagRepo = tagRepo;
-        _summaryService = summaryService;
-        _balanceService = balanceService;
     }
 
     public async Task AddRecordAsync(Guid userId, Contract.AddRecordRequest req)
@@ -69,10 +63,6 @@ public class RecordService : IRecordService
         }
 
         await _recordRepo.AddAsync(record);
-
-        await _summaryService.UpdateMonthlySummaryAsync(userId, req.Category.Type, req.Date.Year, req.Date.Month, req.Amount);
-        await _balanceService.UpdateBalanceAsync(userId, req.Category.Type, req.Amount);
-
         await _unitOfWork.SaveAsync();
     }
 
