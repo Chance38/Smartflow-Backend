@@ -14,22 +14,17 @@ namespace SmartFlowBackend.Infrastructure.Migrations
                 CREATE OR REPLACE FUNCTION update_summary_on_record_insert()
                 RETURNS TRIGGER AS $$
                 BEGIN
-                    -- Check if the record type is EXPENSE
-                    IF NEW.""Type"" = 'EXPENSE' THEN
-                        UPDATE ""MonthlySummary""
-                        SET ""Year"" = EXTRACT(YEAR FROM NEW.""Date""),
-                            ""Month"" = EXTRACT(MONTH FROM NEW.""Date""),
-                            ""Income"" = ""Income"",
-                            ""Expense"" = ""Expense"" + NEW.""Amount""
-                        WHERE ""UserId"" = NEW.""UserId"";
-                    -- Check if the record type is INCOME
-                    ELSIF NEW.""Type"" = 'INCOME' THEN
-                        UPDATE ""MonthlySummary""
-                        SET ""Year"" = EXTRACT(YEAR FROM NEW.""Date""),
-                            ""Month"" = EXTRACT(MONTH FROM NEW.""Date""),
-                            ""Income"" = ""Income"" + NEW.""Amount"",
-                            ""Expense"" = ""Expense""
-                        WHERE ""UserId"" = NEW.""UserId"";
+                    -- Upsert logic: Try to update, if not found, insert.
+                    IF NEW.""Type"" = 'INCOME' THEN
+                        INSERT INTO ""MonthlySummary"" (""Id"", ""UserId"", ""Year"", ""Month"", ""Income"", ""Expense"")
+                        VALUES (gen_random_uuid(), NEW.""UserId"", EXTRACT(YEAR FROM NEW.""Date""), EXTRACT(MONTH FROM NEW.""Date""), NEW.""Amount"", 0)
+                        ON CONFLICT (""UserId"", ""Year"", ""Month"") DO UPDATE
+                        SET ""Income"" = ""MonthlySummary"".""Income"" + NEW.""Amount"";
+                    ELSIF NEW.""Type"" = 'EXPENSE' THEN
+                        INSERT INTO ""MonthlySummary"" (""Id"", ""UserId"", ""Year"", ""Month"", ""Income"", ""Expense"")
+                        VALUES (gen_random_uuid(), NEW.""UserId"", EXTRACT(YEAR FROM NEW.""Date""), EXTRACT(MONTH FROM NEW.""Date""), 0, NEW.""Amount"")
+                        ON CONFLICT (""UserId"", ""Year"", ""Month"") DO UPDATE
+                        SET ""Expense"" = ""MonthlySummary"".""Expense"" + NEW.""Amount"";
                     END IF;
                     RETURN NEW;
                 END;

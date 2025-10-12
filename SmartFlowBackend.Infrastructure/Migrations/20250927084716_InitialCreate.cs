@@ -55,6 +55,12 @@ namespace SmartFlowBackend.Infrastructure.Migrations
                     table.PrimaryKey("PK_MonthlySummary", x => x.Id);
                 });
 
+            migrationBuilder.CreateIndex(
+                name: "IX_MonthlySummary_UserId_Year_Month",
+                table: "MonthlySummary",
+                columns: new[] { "UserId", "Year", "Month" },
+                unique: true);
+
             migrationBuilder.CreateTable(
                 name: "RecordTemplate",
                 columns: table => new
