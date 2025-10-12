@@ -22,7 +22,7 @@ namespace Application.Controller
         [ProducesResponseType(typeof(GetMonthSummariesResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ClientErrorSituation), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ServerErrorSituation), StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GetMonthRecords([FromQuery] int? period)
+        public async Task<IActionResult> GetMonthSummaries([FromQuery] int? period)
         {
             var requestId = ServiceMiddleware.GetRequestId(HttpContext);
             var userId = ServiceMiddleware.GetUserId(HttpContext);

@@ -9,6 +9,7 @@ public class PostgresDbContext : DbContext
     {
     }
 
+    public DbSet<Balance> Balance { get; set; }
     public DbSet<Category> Category { get; set; }
     public DbSet<Tag> Tag { get; set; }
     public DbSet<Record> Record { get; set; }

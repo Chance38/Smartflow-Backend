@@ -65,6 +65,7 @@ namespace Application.Controller
             }
             catch (ArgumentException ex)
             {
+                _logger.LogError(ex, "There is something wrong, this path shouldn't occur.");
                 return BadRequest(new ClientErrorSituation
                 {
                     RequestId = requestId,
