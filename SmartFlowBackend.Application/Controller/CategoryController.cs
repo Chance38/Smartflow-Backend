@@ -58,20 +58,7 @@ namespace Application.Controller
             var userId = ServiceMiddleware.GetUserId(HttpContext);
             _logger.LogInformation("Received request to get all categories for user: {UserId}", userId);
 
-            var categories = new List<Category>();
-            try
-            {
-                categories = await _categoryService.GetAllCategoriesAsync(userId);
-            }
-            catch (ArgumentException ex)
-            {
-                _logger.LogError(ex, "There is something wrong, this path shouldn't occur.");
-                return BadRequest(new ClientErrorSituation
-                {
-                    RequestId = requestId,
-                    ErrorMessage = ex.Message
-                });
-            }
+            var categories = await _categoryService.GetAllCategoriesAsync(userId);
 
             return Ok(new GetAllCategoriesResponse
             {

@@ -28,65 +28,54 @@ namespace Application.Controller
             var userId = ServiceMiddleware.GetUserId(HttpContext);
             _logger.LogInformation("Received request to get records for user {UserId} with period {Period}", userId, period);
 
-            try
+            if (!period.HasValue)
             {
-                if (!period.HasValue)
-                {
-                    var records = await _summaryService.GetAllSummariesAsync(userId);
-                    return Ok(new GetMonthSummariesResponse
-                    {
-                        RequestId = requestId,
-                        Summaries = records
-                    });
-                }
-
-                switch (period.Value)
-                {
-                    case 1:
-                        {
-                            var now = DateTime.UtcNow;
-                            var records = await _summaryService.GetSummariesAsync(
-                                userId,
-                                now.Year, now.Month,
-                                now.Year, now.Month
-                            );
-                            return Ok(new GetMonthSummariesResponse
-                            {
-                                RequestId = requestId,
-                                Summaries = records
-                            });
-                        }
-                    case 6:
-                        {
-                            var end = DateTime.UtcNow;
-                            var start = end.AddMonths(-5);
-
-                            var records = await _summaryService.GetSummariesAsync(
-                                userId,
-                                start.Year, start.Month,
-                                end.Year, end.Month
-                            );
-                            return Ok(new GetMonthSummariesResponse
-                            {
-                                RequestId = requestId,
-                                Summaries = records
-                            });
-                        }
-                    default:
-                        return BadRequest(new ClientErrorSituation
-                        {
-                            RequestId = requestId,
-                            ErrorMessage = "Invalid period. Supported values are 1 (this month) and 6 (last six months)."
-                        });
-                }
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new ClientErrorSituation
+                var records = await _summaryService.GetAllSummariesAsync(userId);
+                return Ok(new GetMonthSummariesResponse
                 {
                     RequestId = requestId,
-                    ErrorMessage = ex.Message
+                    Summaries = records
                 });
+            }
+
+            switch (period.Value)
+            {
+                case 1:
+                    {
+                        var now = DateTime.UtcNow;
+                        var records = await _summaryService.GetSummariesAsync(
+                            userId,
+                            now.Year, now.Month,
+                            now.Year, now.Month
+                        );
+                        return Ok(new GetMonthSummariesResponse
+                        {
+                            RequestId = requestId,
+                            Summaries = records
+                        });
+                    }
+                case 6:
+                    {
+                        var end = DateTime.UtcNow;
+                        var start = end.AddMonths(-5);
+
+                        var records = await _summaryService.GetSummariesAsync(
+                            userId,
+                            start.Year, start.Month,
+                            end.Year, end.Month
+                        );
+                        return Ok(new GetMonthSummariesResponse
+                        {
+                            RequestId = requestId,
+                            Summaries = records
+                        });
+                    }
+                default:
+                    return BadRequest(new ClientErrorSituation
+                    {
+                        RequestId = requestId,
+                        ErrorMessage = "Invalid period. Supported values are 1 (this month) and 6 (last six months)."
+                    });
             }
         }
     }

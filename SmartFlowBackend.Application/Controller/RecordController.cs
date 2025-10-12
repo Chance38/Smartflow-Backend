@@ -58,19 +58,7 @@ namespace Application.Controller
             var userId = ServiceMiddleware.GetUserId(HttpContext);
             _logger.LogInformation("Received request to get records for user {UserId}", userId);
 
-            var expenses = new List<Expense>();
-            try
-            {
-                expenses = await _recordService.GetThisMonthExpensesAsync(userId);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new ClientErrorSituation
-                {
-                    RequestId = requestId,
-                    ErrorMessage = ex.Message
-                });
-            }
+            var expenses = await _recordService.GetThisMonthExpensesAsync(userId);
 
             return Ok(new GetThisMonthExpensesResponse
             {
