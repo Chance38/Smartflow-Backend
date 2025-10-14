@@ -59,19 +59,7 @@ namespace Application.Controller
             var userId = ServiceMiddleware.GetUserId(HttpContext);
             _logger.LogInformation("Received request to get all tags for user: {UserId}", userId);
 
-            var tags = new List<Tag>();
-            try
-            {
-                tags = await _tagService.GetAllTagsAsync(userId);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new ClientErrorSituation
-                {
-                    RequestId = requestId,
-                    ErrorMessage = ex.Message
-                });
-            }
+            var tags = await _tagService.GetAllTagsAsync(userId);
 
             return Ok(new GetAllTagsResponse
             {

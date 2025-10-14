@@ -21,8 +21,7 @@ public class RecordTemplateService : IRecordTemplateService
             throw new ArgumentException("Category already exists");
         }
 
-        if (temp.Amount == 0 &&
-            string.IsNullOrEmpty(temp.CategoryName) &&
+        if (string.IsNullOrEmpty(temp.CategoryName) &&
             (temp.Tags == null || !temp.Tags.Any()))
         {
             throw new ArgumentException("At least one field must be filled");
@@ -77,7 +76,14 @@ public class RecordTemplateService : IRecordTemplateService
 
     public async Task DeleteRecordTemplateAsync(Guid userId, string name)
     {
-        await _repo.DeleteAsync(userId, name);
+        try
+        {
+            await _repo.DeleteAsync(userId, name);
+        }
+        catch (ArgumentException)
+        {
+            return;
+        }
         await _unitOfWork.SaveAsync();
     }
 }

@@ -9,8 +9,9 @@ using Microsoft.Extensions.Logging;
 
 using Application.Controller;
 using Infrastructure.Persistence;
-using Test.Helper;
+using SummaryEntity = Domain.Entity.MonthlySummary;
 
+using Test.Helper;
 using Testcontainers.PostgreSql;
 using Testcontainers.RabbitMq;
 
@@ -86,7 +87,7 @@ public class SummaryControllerTest
         var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
 
-        db.MonthlySummary.Add(new Domain.Entity.MonthlySummary
+        db.MonthlySummary.Add(new SummaryEntity
         {
             UserId = userId,
             Year = DateTime.UtcNow.Year,
@@ -131,9 +132,9 @@ public class SummaryControllerTest
         var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
 
-        db.MonthlySummary.AddRange(new List<Domain.Entity.MonthlySummary>
+        db.MonthlySummary.AddRange(new List<SummaryEntity>
         {
-            new Domain.Entity.MonthlySummary
+            new SummaryEntity
             {
                 UserId = userId,
                 Year = DateTime.UtcNow.Year,
@@ -141,7 +142,7 @@ public class SummaryControllerTest
                 Expense = 50.75f,
                 Income = 0.00f
             },
-            new Domain.Entity.MonthlySummary
+            new SummaryEntity
             {
                 UserId = userId,
                 Year = DateTime.UtcNow.Year,
@@ -149,7 +150,7 @@ public class SummaryControllerTest
                 Expense = 100.00f,
                 Income = 200.00f
             },
-            new Domain.Entity.MonthlySummary
+            new SummaryEntity
             {
                 UserId = userId,
                 Year = DateTime.UtcNow.Year,
@@ -216,9 +217,9 @@ public class SummaryControllerTest
         var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
 
-        db.MonthlySummary.AddRange(new List<Domain.Entity.MonthlySummary>
+        db.MonthlySummary.AddRange(new List<SummaryEntity>
         {
-            new Domain.Entity.MonthlySummary
+            new SummaryEntity
             {
                 UserId = userId,
                 Year = DateTime.UtcNow.Year,
@@ -226,7 +227,7 @@ public class SummaryControllerTest
                 Expense = 50.75f,
                 Income = 0.00f
             },
-            new Domain.Entity.MonthlySummary
+            new SummaryEntity
             {
                 UserId = userId,
                 Year = DateTime.UtcNow.Year,
@@ -234,7 +235,7 @@ public class SummaryControllerTest
                 Expense = 100.00f,
                 Income = 200.00f
             },
-            new Domain.Entity.MonthlySummary
+            new SummaryEntity
             {
                 UserId = userId,
                 Year = DateTime.UtcNow.Year,

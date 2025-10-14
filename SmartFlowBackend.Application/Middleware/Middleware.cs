@@ -27,7 +27,7 @@ public class ServiceMiddleware
 
         if (!context.Request.Headers.TryGetValue("Authorization", out var authHeader) || string.IsNullOrWhiteSpace(authHeader))
         {
-            context.Response.StatusCode = 400;
+            context.Response.StatusCode = 401;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsJsonAsync(new ClientErrorSituation
             {
@@ -37,6 +37,7 @@ public class ServiceMiddleware
             {
                 PropertyNamingPolicy = null
             });
+            return;
         }
 
         var token = authHeader.ToString().Replace("Bearer ", "", StringComparison.OrdinalIgnoreCase).Trim();
@@ -60,7 +61,7 @@ public class ServiceMiddleware
             var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
             if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
             {
-                context.Response.StatusCode = 400;
+                context.Response.StatusCode = 401;
                 context.Response.ContentType = "application/json";
                 await context.Response.WriteAsJsonAsync(new ClientErrorSituation
                 {
@@ -78,7 +79,7 @@ public class ServiceMiddleware
         }
         catch (SecurityTokenExpiredException)
         {
-            context.Response.StatusCode = 400;
+            context.Response.StatusCode = 401;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsJsonAsync(new ClientErrorSituation
             {
@@ -91,7 +92,7 @@ public class ServiceMiddleware
         }
         catch (SecurityTokenInvalidIssuerException)
         {
-            context.Response.StatusCode = 400;
+            context.Response.StatusCode = 401;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsJsonAsync(new ClientErrorSituation
             {
@@ -104,7 +105,7 @@ public class ServiceMiddleware
         }
         catch (SecurityTokenInvalidAudienceException)
         {
-            context.Response.StatusCode = 400;
+            context.Response.StatusCode = 401;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsJsonAsync(new ClientErrorSituation
             {

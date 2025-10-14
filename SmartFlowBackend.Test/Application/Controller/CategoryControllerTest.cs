@@ -8,9 +8,11 @@ using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Logging;
 
 using Application.Controller;
+using Domain.Entity;
+using CategoryEntity = Domain.Entity.Category;
 using Infrastructure.Persistence;
-using Test.Helper;
 
+using Test.Helper;
 using Testcontainers.PostgreSql;
 using Testcontainers.RabbitMq;
 
@@ -100,7 +102,7 @@ public class CategoryControllerTest
         var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
 
-        var category = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == Domain.Entity.CategoryType.EXPENSE);
+        var category = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == CategoryType.EXPENSE);
         Assert.IsNotNull(category, "Category should be persisted to DB");
     }
 
@@ -133,7 +135,7 @@ public class CategoryControllerTest
         var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
 
-        var category = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == Domain.Entity.CategoryType.EXPENSE);
+        var category = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == CategoryType.EXPENSE);
         Assert.IsNotNull(category, "Category should be persisted to DB");
 
         var AddCategorySecondReq =
@@ -158,7 +160,7 @@ public class CategoryControllerTest
         var scope2 = _factory.Services.CreateScope();
         var db2 = scope2.ServiceProvider.GetRequiredService<PostgresDbContext>();
 
-        var category2 = await db2.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == Domain.Entity.CategoryType.INCOME);
+        var category2 = await db2.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == CategoryType.INCOME);
         Assert.IsNotNull(category2, "Category should be persisted to DB");
     }
 
@@ -191,7 +193,7 @@ public class CategoryControllerTest
         var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
 
-        var category = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == Domain.Entity.CategoryType.EXPENSE);
+        var category = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == CategoryType.EXPENSE);
         Assert.IsNotNull(category, "Category should be persisted to DB");
 
         var secondResponse = await _client.PostAsync("smartflow/v1/category", new StringContent(
@@ -214,26 +216,26 @@ public class CategoryControllerTest
         var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
 
-        db.Category.AddRange(new List<Domain.Entity.Category>
+        db.Category.AddRange(new List<CategoryEntity>
         {
-            new Domain.Entity.Category
+            new CategoryEntity
             {
                 Name = "Test Category",
-                Type = Domain.Entity.CategoryType.EXPENSE,
+                Type = CategoryType.EXPENSE,
                 UserId = userId
             },
-            new Domain.Entity.Category
+            new CategoryEntity
             {
                 Name = "Test Category 2",
-                Type = Domain.Entity.CategoryType.INCOME,
+                Type = CategoryType.INCOME,
                 UserId = userId
             }
         });
 
         await db.SaveChangesAsync();
 
-        var c1 = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == Domain.Entity.CategoryType.EXPENSE);
-        var c2 = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category 2" && c.Type == Domain.Entity.CategoryType.INCOME);
+        var c1 = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == CategoryType.EXPENSE);
+        var c2 = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category 2" && c.Type == CategoryType.INCOME);
         Assert.IsNotNull(c1, "Expense category should be persisted to DB");
         Assert.IsNotNull(c2, "Income category should be persisted to DB");
 
@@ -267,19 +269,19 @@ public class CategoryControllerTest
         var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
 
-        db.Category.AddRange(new List<Domain.Entity.Category>
+        db.Category.AddRange(new List<CategoryEntity>
         {
-            new Domain.Entity.Category
+            new CategoryEntity
             {
                 Name = "Test Category",
-                Type = Domain.Entity.CategoryType.EXPENSE,
+                Type = CategoryType.EXPENSE,
                 UserId = userId
             }
         });
 
         await db.SaveChangesAsync();
 
-        var c1 = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == Domain.Entity.CategoryType.EXPENSE);
+        var c1 = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == CategoryType.EXPENSE);
         Assert.IsNotNull(c1, "Expense category should be persisted to DB");
 
         var deleteReq =
@@ -300,7 +302,7 @@ public class CategoryControllerTest
         var resp = await _client.SendAsync(req);
         Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var deletedCategory = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == Domain.Entity.CategoryType.EXPENSE);
+        var deletedCategory = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == CategoryType.EXPENSE);
         Assert.IsNull(deletedCategory, "Category should be deleted from DB");
     }
 
@@ -314,7 +316,7 @@ public class CategoryControllerTest
         var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
 
-        var c1 = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == Domain.Entity.CategoryType.EXPENSE);
+        var c1 = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == CategoryType.EXPENSE);
         Assert.IsNull(c1, "Category should not exist in DB");
 
         var count = await db.Category.CountAsync(c => c.UserId == userId);
@@ -349,19 +351,19 @@ public class CategoryControllerTest
         var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
 
-        db.Category.AddRange(new List<Domain.Entity.Category>
+        db.Category.AddRange(new List<CategoryEntity>
         {
-            new Domain.Entity.Category
+            new CategoryEntity
             {
                 Name = "Test Category",
-                Type = Domain.Entity.CategoryType.EXPENSE,
+                Type = CategoryType.EXPENSE,
                 UserId = userId
             }
         });
 
         await db.SaveChangesAsync();
 
-        var c1 = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == Domain.Entity.CategoryType.EXPENSE);
+        var c1 = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == CategoryType.EXPENSE);
         Assert.IsNotNull(c1, "Expense category should be persisted to DB");
 
         var updateReq =
@@ -386,10 +388,10 @@ public class CategoryControllerTest
         Assert.That(resp.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         Assert.That(resp.Content.Headers.ContentType.MediaType, Is.EqualTo("application/json"));
 
-        var oldCategory = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == Domain.Entity.CategoryType.EXPENSE);
+        var oldCategory = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == CategoryType.EXPENSE);
         Assert.IsNull(oldCategory, "Old category should not exist in DB");
 
-        var updatedCategory = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Updated Category" && c.Type == Domain.Entity.CategoryType.INCOME);
+        var updatedCategory = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Updated Category" && c.Type == CategoryType.INCOME);
         Assert.IsNotNull(updatedCategory, "Category should be updated in DB");
     }
 
@@ -403,7 +405,7 @@ public class CategoryControllerTest
         var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
 
-        var c1 = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == Domain.Entity.CategoryType.EXPENSE);
+        var c1 = await db.Category.FirstOrDefaultAsync(c => c.UserId == userId && c.Name == "Test Category" && c.Type == CategoryType.EXPENSE);
         Assert.IsNull(c1, "Category should not exist in DB");
 
         var count = await db.Category.CountAsync(c => c.UserId == userId);

@@ -8,9 +8,14 @@ using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Logging;
 
 using Application.Controller;
+using Domain.Entity;
+using RecordEntity = Domain.Entity.Record;
+using CategoryEntity = Domain.Entity.Category;
+using TagEntity = Domain.Entity.Tag;
+using BalanceEntity = Domain.Entity.Balance;
 using Infrastructure.Persistence;
-using Test.Helper;
 
+using Test.Helper;
 using Testcontainers.PostgreSql;
 using Testcontainers.RabbitMq;
 
@@ -76,9 +81,9 @@ public class RecordControllerTest
         _client.Dispose();
     }
 
-    [TestCase("food", "expense", Domain.Entity.CategoryType.EXPENSE, "lunch", -50.75f)]
-    [TestCase("salary", "income", Domain.Entity.CategoryType.INCOME, "work", 50.75f)]
-    public async Task AddRecord_Should_Return_Ok(string categoryName, string categoryType, Domain.Entity.CategoryType categoryTypeEnum, string tagName, float amount)
+    [TestCase("food", "expense", CategoryType.EXPENSE, "lunch", -50.75f)]
+    [TestCase("salary", "income", CategoryType.INCOME, "work", 50.75f)]
+    public async Task AddRecord_Should_Return_Ok(string categoryName, string categoryType, CategoryType categoryTypeEnum, string tagName, float amount)
     {
         var userId = Guid.NewGuid();
         var token = TestHelper.CreateMockAccessToken(userId);
@@ -87,37 +92,37 @@ public class RecordControllerTest
         var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
 
-        db.Category.AddRange(new List<Domain.Entity.Category>
+        db.Category.AddRange(new List<CategoryEntity>
         {
-            new Domain.Entity.Category
+            new CategoryEntity
             {
                 Name = "food",
-                Type = Domain.Entity.CategoryType.EXPENSE,
+                Type = CategoryType.EXPENSE,
                 UserId = userId
             },
-            new Domain.Entity.Category
+            new CategoryEntity
             {
                 Name = "salary",
-                Type = Domain.Entity.CategoryType.INCOME,
+                Type = CategoryType.INCOME,
                 UserId = userId
             }
         });
 
-        db.Tag.AddRange(new List<Domain.Entity.Tag>
+        db.Tag.AddRange(new List<TagEntity>
         {
-            new Domain.Entity.Tag
+            new TagEntity
             {
                 Name = "lunch",
                 UserId = userId
             },
-            new Domain.Entity.Tag
+            new TagEntity
             {
                 Name = "work",
                 UserId = userId
             }
         });
 
-        db.Balance.Add(new Domain.Entity.Balance
+        db.Balance.Add(new BalanceEntity
         {
             UserId = userId,
             Amount = 10000.0f
@@ -161,9 +166,9 @@ public class RecordControllerTest
         Assert.IsNotNull(record, "Record should be created in the database");
     }
 
-    [TestCase("food", "expense", Domain.Entity.CategoryType.EXPENSE, "lunch", -50.75f)]
-    [TestCase("salary", "income", Domain.Entity.CategoryType.INCOME, "work", 50.75f)]
-    public async Task Balance_And_MonthlySummary_Table_Should_trigger_When_add_new_record(string categoryName, string categoryType, Domain.Entity.CategoryType categoryTypeEnum, string tagName, float amount)
+    [TestCase("food", "expense", CategoryType.EXPENSE, "lunch", -50.75f)]
+    [TestCase("salary", "income", CategoryType.INCOME, "work", 50.75f)]
+    public async Task Balance_And_MonthlySummary_Table_Should_trigger_When_add_new_record(string categoryName, string categoryType, CategoryType categoryTypeEnum, string tagName, float amount)
     {
         var userId = Guid.NewGuid();
         var token = TestHelper.CreateMockAccessToken(userId);
@@ -172,30 +177,30 @@ public class RecordControllerTest
         var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
 
-        db.Category.AddRange(new List<Domain.Entity.Category>
+        db.Category.AddRange(new List<CategoryEntity>
         {
-            new Domain.Entity.Category
+            new CategoryEntity
             {
                 Name = "food",
-                Type = Domain.Entity.CategoryType.EXPENSE,
+                Type = CategoryType.EXPENSE,
                 UserId = userId
             },
-            new Domain.Entity.Category
+            new CategoryEntity
             {
                 Name = "salary",
-                Type = Domain.Entity.CategoryType.INCOME,
+                Type = CategoryType.INCOME,
                 UserId = userId
             }
         });
 
-        db.Tag.AddRange(new List<Domain.Entity.Tag>
+        db.Tag.AddRange(new List<TagEntity>
         {
-            new Domain.Entity.Tag
+            new TagEntity
             {
                 Name = "lunch",
                 UserId = userId
             },
-            new Domain.Entity.Tag
+            new TagEntity
             {
                 Name = "work",
                 UserId = userId
@@ -204,7 +209,7 @@ public class RecordControllerTest
 
         var recordDate = DateOnly.Parse("2023-09-15");
 
-        db.Balance.Add(new Domain.Entity.Balance
+        db.Balance.Add(new BalanceEntity
         {
             UserId = userId,
             Amount = 10000.0f
@@ -260,11 +265,11 @@ public class RecordControllerTest
             s.Year == recordDate.Year &&
             s.Month == recordDate.Month);
 
-        if (categoryTypeEnum == Domain.Entity.CategoryType.EXPENSE)
+        if (categoryTypeEnum == CategoryType.EXPENSE)
         {
             Assert.That(summary.Expense, Is.EqualTo(Math.Abs(amount)));
         }
-        else if (categoryTypeEnum == Domain.Entity.CategoryType.INCOME)
+        else if (categoryTypeEnum == CategoryType.INCOME)
         {
             Assert.That(summary.Income, Is.EqualTo(amount));
         }
@@ -280,14 +285,14 @@ public class RecordControllerTest
         var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
 
-        db.Tag.AddRange(new List<Domain.Entity.Tag>
+        db.Tag.AddRange(new List<TagEntity>
         {
-            new Domain.Entity.Tag
+            new TagEntity
             {
                 Name = "lunch",
                 UserId = userId
             },
-            new Domain.Entity.Tag
+            new TagEntity
             {
                 Name = "dinner",
                 UserId = userId
@@ -336,12 +341,12 @@ public class RecordControllerTest
         var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
 
-        db.Category.AddRange(new List<Domain.Entity.Category>
+        db.Category.AddRange(new List<CategoryEntity>
         {
-            new Domain.Entity.Category
+            new CategoryEntity
             {
                 Name = "food",
-                Type = Domain.Entity.CategoryType.EXPENSE,
+                Type = CategoryType.EXPENSE,
                 UserId = userId
             }
         });
@@ -388,28 +393,28 @@ public class RecordControllerTest
         var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
 
-        db.Record.AddRange(new List<Domain.Entity.Record>
+        db.Record.AddRange(new List<RecordEntity>
         {
-            new Domain.Entity.Record
+            new RecordEntity
             {
                 CategoryName = "food",
-                Type = Domain.Entity.CategoryType.EXPENSE,
+                Type = CategoryType.EXPENSE,
                 Amount = 50.75f,
                 Date = DateOnly.FromDateTime(DateTime.UtcNow),
                 UserId = userId
             },
-            new Domain.Entity.Record
+            new RecordEntity
             {
                 CategoryName = "transport",
-                Type = Domain.Entity.CategoryType.EXPENSE,
+                Type = CategoryType.EXPENSE,
                 Amount = 20.00f,
                 Date = DateOnly.FromDateTime(DateTime.UtcNow),
                 UserId = userId
             },
-            new Domain.Entity.Record
+            new RecordEntity
             {
                 CategoryName = "salary",
-                Type = Domain.Entity.CategoryType.INCOME,
+                Type = CategoryType.INCOME,
                 Amount = 5000.00f,
                 Date = DateOnly.FromDateTime(DateTime.UtcNow),
                 UserId = userId

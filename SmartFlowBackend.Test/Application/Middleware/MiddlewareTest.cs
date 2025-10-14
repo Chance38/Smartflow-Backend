@@ -1,23 +1,27 @@
 using System.Net;
+using System.Text;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
-using Application.Controller;
-using Domain.Contract;
-using BalanceEntity = Domain.Entity.Balance;
+using Middleware;
+using Domain.Entity;
+using CategoryEntity = Domain.Entity.Category;
 using Infrastructure.Persistence;
 
 using Test.Helper;
 using Testcontainers.PostgreSql;
 using Testcontainers.RabbitMq;
 
-namespace Test.Application.Controller.Balance;
+namespace Test.Middleware;
 
-public class BalanceControllerTest
+public class ServiceMiddlewareTest
 {
     private PostgreSqlContainer _postgresContainer;
     private RabbitMqContainer _rabbitMqContainer;
@@ -59,7 +63,7 @@ public class BalanceControllerTest
     }
 
     [SetUp]
-    public void SetUp()
+    public async Task SetUp()
     {
         _factory = new CustomWebApplicationFactory();
         _client = _factory.CreateClient();
@@ -73,56 +77,69 @@ public class BalanceControllerTest
     }
 
     [Test]
-    public async Task GetBalance_Should_Return_Ok()
+    public async Task GetBalance_WithoutToken_ShouldReturnUnauthorized()
+    {
+        var response = await _client.GetAsync("smartflow/v1/balance");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+    }
+
+    [TestCase("SmartechIssuer", "SmartechAudience", -10)]
+    [TestCase("InvalidToken", "SmartechAudience", 10)]
+    [TestCase("SmartechIssuer", "InvalidAudience", 10)]
+    public async Task GetBalance_WithInvalidToken_ShouldReturnUnauthorized(string issuer, string audience, int expiration)
     {
         var userId = Guid.NewGuid();
-        var token = TestHelper.CreateMockAccessToken(userId);
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-
-        using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
-        db.Balance.Add(new BalanceEntity
+        var claims = new[]
         {
-            UserId = userId,
-            Amount = 10000.0f
-        });
-        await db.SaveChangesAsync();
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString())
+        };
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SmartechAFk9Jlh9qTPXWLJxGjsoglsigaoGJIKey"));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var token = new JwtSecurityToken(
+            issuer: issuer,
+            audience: audience,
+            claims: claims,
+            expires: DateTime.Now.AddSeconds(expiration),
+            signingCredentials: creds
+        );
+
+        var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {jwt}");
 
         var response = await _client.GetAsync("smartflow/v1/balance");
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-
-        var content = await response.Content.ReadAsStringAsync();
-        Assert.That(response.Content.Headers.ContentType.MediaType, Is.EqualTo("application/json"));
-
-        var jsonResp = System.Text.Json.JsonSerializer.Deserialize<GetBalanceResponse>(content);
-        Assert.That(jsonResp.Balance, Is.EqualTo(10000.0f));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
     }
 
     [Test]
-    public async Task GetBalance_When_User_NotFound_Should_Check_Identity_Service_And_Return_BadRequest()
+    public async Task GetBalance_WithInvalidToken_ShouldReturnUnauthorized()
     {
-        var userId = Guid.NewGuid();
-        var token = TestHelper.CreateMockAccessToken(userId);
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("SmartechAFk9Jlh9qTPXWLJxGjsoglsigaoGJIKey"));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var token = new JwtSecurityToken(
+            issuer: "SmartechIssuer",
+            audience: "SmartechAudience",
+            expires: DateTime.Now.AddSeconds(10),
+            signingCredentials: creds
+        );
+
+        var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {jwt}");
 
         var response = await _client.GetAsync("smartflow/v1/balance");
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
-
-        var content = await response.Content.ReadAsStringAsync();
-        Assert.That(response.Content.Headers.ContentType.MediaType, Is.EqualTo("application/json"));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
     }
 }
 
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
-    public FakeLogger<BalanceController> fakeLogger = null!;
+    public FakeLogger<ServiceMiddleware> fakeLogger = null!;
 
     protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
     {
         builder.ConfigureServices(services =>
         {
-            fakeLogger = new FakeLogger<BalanceController>();
-            services.AddSingleton<ILogger<BalanceController>>(fakeLogger);
+            fakeLogger = new FakeLogger<ServiceMiddleware>();
+            services.AddSingleton<ILogger<ServiceMiddleware>>(fakeLogger);
 
             var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<PostgresDbContext>));
             if (descriptor != null) services.Remove(descriptor);

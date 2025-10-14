@@ -60,23 +60,12 @@ namespace Application.Controller
             var userId = ServiceMiddleware.GetUserId(HttpContext);
             _logger.LogInformation("Received request to get all record templates for user {UserId}", userId);
 
-            try
+            var recordTemplates = await _recordTemplateService.GetAllRecordTemplatesAsync(userId);
+            return Ok(new GetAllRecordTemplatesResponse
             {
-                var recordTemplates = await _recordTemplateService.GetAllRecordTemplatesAsync(userId);
-                return Ok(new GetAllRecordTemplatesResponse
-                {
-                    RequestId = requestId,
-                    RecordTemplates = recordTemplates
-                });
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new ClientErrorSituation
-                {
-                    RequestId = requestId,
-                    ErrorMessage = ex.Message
-                });
-            }
+                RequestId = requestId,
+                RecordTemplates = recordTemplates
+            });
         }
 
         [HttpDelete("record-template")]

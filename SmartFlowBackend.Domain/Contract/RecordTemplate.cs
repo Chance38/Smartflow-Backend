@@ -5,7 +5,7 @@ namespace Domain.Contract;
 
 public class RecordTemplate
 {
-    [JsonPropertyName("Name")]
+    [JsonPropertyName("name")]
     [Required(ErrorMessage = "RecordTemplateName is required")]
     public required string Name { get; set; }
 

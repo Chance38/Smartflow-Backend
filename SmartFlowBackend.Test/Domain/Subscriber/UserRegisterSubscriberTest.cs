@@ -1,29 +1,28 @@
-using System.Net;
+using System.Text;
 
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Testing;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using RabbitMQ.Client;
 
-using Application.Controller;
-using Domain.Contract;
-using BalanceEntity = Domain.Entity.Balance;
+using Domain.Subscriber;
 using Infrastructure.Persistence;
 
 using Test.Helper;
 using Testcontainers.PostgreSql;
 using Testcontainers.RabbitMq;
 
-namespace Test.Application.Controller.Balance;
+namespace Test.Domain.Subscriber.User;
 
-public class BalanceControllerTest
+public class UserRegisterSubscriberTest
 {
     private PostgreSqlContainer _postgresContainer;
     private RabbitMqContainer _rabbitMqContainer;
     private CustomWebApplicationFactory _factory;
     private HttpClient _client;
-
 
     [OneTimeSetUp]
     public async Task OneTimeSetUp()
@@ -59,7 +58,7 @@ public class BalanceControllerTest
     }
 
     [SetUp]
-    public void SetUp()
+    public async Task SetUp()
     {
         _factory = new CustomWebApplicationFactory();
         _client = _factory.CreateClient();
@@ -73,56 +72,59 @@ public class BalanceControllerTest
     }
 
     [Test]
-    public async Task GetBalance_Should_Return_Ok()
+    public async Task UserRegisterSubscriber_Should_Handle_UserRegistered_Event()
     {
         var userId = Guid.NewGuid();
-        var token = TestHelper.CreateMockAccessToken(userId);
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+        var message = new { UserId = userId };
+        var payload = JsonConvert.SerializeObject(message);
+
+        var rabbitMqHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST");
+        var rabbitMqPort = Environment.GetEnvironmentVariable("RABBITMQ_PORT")!;
+        var rabbitMqUser = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME");
+        var rabbitMqPass = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD");
+
+        var factory = new ConnectionFactory
+        {
+            HostName = rabbitMqHost,
+            Port = int.Parse(rabbitMqPort),
+            UserName = rabbitMqUser,
+            Password = rabbitMqPass
+        };
+
+        using var connection = factory.CreateConnection();
+        using var channel = connection.CreateModel();
+
+        var body = Encoding.UTF8.GetBytes(payload);
+
+        channel.BasicPublish(exchange: "IDENTITY",
+            routingKey: "REGISTER",
+            basicProperties: null,
+            body: body);
+
+        await Task.Delay(1000);
 
         using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
-        db.Balance.Add(new BalanceEntity
-        {
-            UserId = userId,
-            Amount = 10000.0f
-        });
-        await db.SaveChangesAsync();
+        var dbContext = scope.ServiceProvider.GetRequiredService<PostgresDbContext>();
+        var categories = await dbContext.Category.Where(c => c.UserId == userId).ToListAsync();
+        var balance = await dbContext.Balance.SingleOrDefaultAsync(b => b.UserId == userId);
 
-        var response = await _client.GetAsync("smartflow/v1/balance");
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
-
-        var content = await response.Content.ReadAsStringAsync();
-        Assert.That(response.Content.Headers.ContentType.MediaType, Is.EqualTo("application/json"));
-
-        var jsonResp = System.Text.Json.JsonSerializer.Deserialize<GetBalanceResponse>(content);
-        Assert.That(jsonResp.Balance, Is.EqualTo(10000.0f));
-    }
-
-    [Test]
-    public async Task GetBalance_When_User_NotFound_Should_Check_Identity_Service_And_Return_BadRequest()
-    {
-        var userId = Guid.NewGuid();
-        var token = TestHelper.CreateMockAccessToken(userId);
-        _client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-
-        var response = await _client.GetAsync("smartflow/v1/balance");
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
-
-        var content = await response.Content.ReadAsStringAsync();
-        Assert.That(response.Content.Headers.ContentType.MediaType, Is.EqualTo("application/json"));
+        Assert.That(categories, Is.Not.Null);
+        Assert.That(categories.Count, Is.EqualTo(5));
+        Assert.That(balance, Is.Not.Null);
+        Assert.That(balance.Amount, Is.EqualTo(0));
     }
 }
 
 public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
-    public FakeLogger<BalanceController> fakeLogger = null!;
+    public FakeLogger<UserRegisterSubscriber> fakeLogger = null!;
 
     protected override void ConfigureWebHost(Microsoft.AspNetCore.Hosting.IWebHostBuilder builder)
     {
         builder.ConfigureServices(services =>
         {
-            fakeLogger = new FakeLogger<BalanceController>();
-            services.AddSingleton<ILogger<BalanceController>>(fakeLogger);
+            fakeLogger = new FakeLogger<UserRegisterSubscriber>();
+            services.AddSingleton<ILogger<UserRegisterSubscriber>>(fakeLogger);
 
             var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<PostgresDbContext>));
             if (descriptor != null) services.Remove(descriptor);
