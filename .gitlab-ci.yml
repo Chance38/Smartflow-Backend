@@ -18,12 +18,12 @@ test:
     - dotnet restore --locked-mode
     - dotnet test --no-restore --logger "console;verbosity=detailed" --collect:"XPlat Code Coverage"
 
-    - reportgenerator -reports:"SmartFlowBackend.Test/TestResults/**/coverage.cobertura.xml" -targetdir:coveragereport -reporttypes:TextSummary
+    - reportgenerator -reports:"Test/TestResults/**/coverage.cobertura.xml" -targetdir:coveragereport -reporttypes:TextSummary
     - cat coveragereport/Summary.txt || true
   artifacts:
     paths:
       - coveragereport/
-      - SmartFlowBackend.Test/TestResults/
+      - Test/TestResults/
     expire_in: 1 week
   cache:
     key:
