@@ -20,7 +20,7 @@ public class TagService : ITagService
         var existTag = await _repo.CheckExistAsync(userId, tag.Name);
         if (existTag != null)
         {
-            throw new ArgumentException("Category already exists");
+            throw new ArgumentException("Tag already exists");
         }
 
         var tagEntity = new Domain.Entity.Tag
