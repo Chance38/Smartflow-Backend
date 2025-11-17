@@ -6,39 +6,28 @@ services:
     image: smartflow-backend
     platform: linux/arm64
     ports:
-      - "8080:8080"
+      - "2000:80"
     environment:
-      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_URLS=http://+:80
       - ASPNETCORE_ENVIRONMENT=Development
-      - LOGGER_URL=http://seq:5341
-      - ConnectionStrings__Postgres_Connection=Host=postgres;Port=5432;Database=SmarTechTeam;Username=smartech;Password=Stt@1234
+      - LOGGER_URL=http://logger-seq:80
+      - ConnectionStrings__Postgres_Connection=Host=smartflow-db;Port=5432;Database=SmarTechTeam;Username=smartech;Password=Stt@1234
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USERNAME=smartech
+      - RABBITMQ_PASSWORD=Stt@1234
     depends_on:
-      postgres:
+      smartflow-db:
         condition: service_healthy
-      seq:
-        condition: service_started
     restart: unless-stopped
     networks:
-      - smartflow-networks
+      - smartech-networks
 
-  seq:
-    image: datalust/seq:2024.1
-    container_name: smartflow-seq
-    environment:
-      ACCEPT_EULA: "Y"
-    ports:
-      - "7878:80"
-    volumes:
-      - ./seq/log:/data
-    restart: unless-stopped
-    networks:
-      - smartflow-networks
-
-  postgres:
+  smartflow-db:
     image: postgres:15
     container_name: smartflow-db
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U smartech -d smartflow"]
+      test: ["CMD-SHELL", "pg_isready -U smartech -d SmarTechTeam"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -48,15 +37,16 @@ services:
       POSTGRES_DB: SmarTechTeam
     volumes:
       - postgresql_data:/var/lib/postgresql/data
-    restart: always
+    restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "3000:5432"
     networks:
-      - smartflow-networks
+      - smartech-networks
 
 volumes:
   postgresql_data:
 
 networks:
-  smartflow-networks:
+  smartech-networks:
+    external: true
     driver: bridge

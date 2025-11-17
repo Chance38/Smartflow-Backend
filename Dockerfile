@@ -2,15 +2,16 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["SmartFlowBackend.sln", "."]
-COPY "SmartFlowBackend.Application/SmartFlowBackend.Application.csproj" "SmartFlowBackend.Application/"
-COPY "SmartFlowBackend.Domain/SmartFlowBackend.Domain.csproj" "SmartFlowBackend.Domain/"
-COPY "SmartFlowBackend.Infrastructure/SmartFlowBackend.Infrastructure.csproj" "SmartFlowBackend.Infrastructure/"
-COPY "SmartFlowBackend.Test/SmartFlowBackend.Test.csproj" "SmartFlowBackend.Test/"
+COPY "Application/Application.csproj" "Application/"
+COPY "Domain/Domain.csproj" "Domain/"
+COPY "Infrastructure/Infrastructure.csproj" "Infrastructure/"
+COPY "Presentation/Presentation.csproj" "Presentation/"
+COPY "Test/SmartFlowBackend.Test.csproj" "Test/"
 RUN dotnet restore "SmartFlowBackend.sln"
 COPY . .
-WORKDIR "/src/SmartFlowBackend.Application"
+WORKDIR "/src/Presentation"
 # Use dotnet publish for a smaller, optimized output
-RUN dotnet publish "SmartFlowBackend.Application.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "Presentation.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # The final runtime image, using the lightweight ASP.NET runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS final
@@ -18,7 +19,7 @@ WORKDIR /app
 # Copy the published output from the build stage
 COPY --from=build /app/publish .
 
-ENV ASPNETCORE_URLS=http://+:8080
-EXPOSE 8080
+ENV ASPNETCORE_URLS=http://+:80
+EXPOSE 80
 # Correct the entrypoint to point to the dll in the /app directory
-ENTRYPOINT ["dotnet", "SmartFlowBackend.Application.dll"]
+ENTRYPOINT ["dotnet", "Presentation.dll"]
